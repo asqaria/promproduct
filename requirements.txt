@@ -4,3 +4,5 @@ httpx
 aiosmtplib
 python-dotenv
 asyncpg
+sqlalchemy
+psycopg2
