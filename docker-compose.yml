@@ -18,10 +18,24 @@ services:
     environment:
       # adjust your app's DB connection env name as needed
       DATABASE_URL: "postgresql+asyncpg://appuser:apppassword@postgresql-db:5432/appdb"
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: BATYSKURYLYSXXI@gmail.com
+      SMTP_PASSWORD: tbup phrp bdnl lthd
+      ADMIN_EMAIL: BATYSKURYLYSXXI@gmail.com
+      FROM_EMAIL: BATYSKURYLYSXXI@gmail.com
     depends_on:
       - postgresql-db
     ports:
       - "8002:8002"
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
 
 volumes:
   postgres-data:

@@ -131,7 +131,7 @@ async def receive_admin_request(payload: AdminRequest, db: AsyncSession = Depend
         smtp_host = os.environ.get("SMTP_HOST")
         smtp_port = int(os.environ.get("SMTP_PORT", "0"))
         smtp_user = os.environ.get("SMTP_USER")
-        smtp_pass = os.environ.get("SMTP_PASS")
+        smtp_pass = os.environ.get("SMTP_PASSWORD")
         admin_email = os.environ.get("ADMIN_EMAIL", "BATYSKURYLYSXXI@gmail.com")
         from_email = os.environ.get("FROM_EMAIL", smtp_user or "BATYSKURYLYSXXI@gmail.com")
 
@@ -144,8 +144,8 @@ async def receive_admin_request(payload: AdminRequest, db: AsyncSession = Depend
         except Exception:
             items = []
 
-        subject = f"New request #{req_id} from {contact.get('name')}"
-        lines = [f"Request ID: {req_id}", f"Customer: {contact.get('name')}", f"Phone: {contact.get('phone')}", "", "Items:"]
+        subject = f"Запрос #{req_id} от {contact.get('name')}"
+        lines = [f"Запрос ID: {req_id}", f"От полтзователя: {contact.get('name')}", f"Телефон: {contact.get('phone')}", "", "Продукты:"]
         for it in items:
             lines.append(f"- {it.get('name')} (id={it.get('id')}) price={it.get('price')}")
 
