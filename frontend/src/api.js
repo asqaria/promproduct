@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8002";
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://93.115.14.68:8002";
 
 export async function fetchProducts() {
   const res = await fetch(`${API_BASE}/products`);

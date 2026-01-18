@@ -14,8 +14,8 @@ export default function Cart({ items, onRemove, onSend, sending }) {
       <ul>
         {items.map((it, idx) => (
           <li key={idx}>
-            {it.name} - ${it.price?.toFixed(2)}
-            <button onClick={() => onRemove(idx)}>x</button>
+            {it.name} - {typeof it.price === "number" ? `$${it.price.toFixed(2)}` : ""}
+            <button onClick={() => onRemove(idx)} aria-label={`Удалить ${it.name}`}>x</button>
           </li>
         ))}
       </ul>

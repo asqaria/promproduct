@@ -20,6 +20,7 @@ button { padding: 0.35rem 0.6rem; margin-top: 0.5rem; cursor: pointer; }
 	--accent:#7c3aed;
 	--radius:12px;
 	--shadow: 0 6px 18px rgba(15,23,42,0.08);
+	--header-icon-size: 24px; /* adjust here to change both icons */
 }
 
 *{box-sizing:border-box}
@@ -29,9 +30,9 @@ body{font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, "Segoe UI"
 .app header h1{margin:0;font-size:1.25rem;letter-spacing:0.2px}
 
 /* Layout: sidebar + catalog + cart */
-main{display:flex; gap:1rem; padding:1.25rem; align-items:flex-start}
-.sidebar{width:240px;padding:1rem;border-radius:var(--radius);background:linear-gradient(180deg,#fff,#fcfdff);box-shadow:var(--shadow);border:1px solid rgba(12,18,36,0.04)}
-.catalog{flex:1}
+main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
+.sidebar{ width:240px; padding:1rem; border-radius:var(--radius); background:linear-gradient(180deg,#fff,#fcfdff); box-shadow:var(--shadow); border:1px solid rgba(12,18,36,0.04); }
+.catalog{ flex:1; }
 
 .category-block{margin-bottom:1.5rem}
 .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
@@ -84,32 +85,122 @@ button:disabled{opacity:.6;cursor:not-allowed}
 .form-row input{padding:0.55rem 0.65rem;border-radius:8px;border:1px solid rgba(12,18,36,0.06);background:transparent;font-weight:600}
 .form-row input::placeholder{color:#94a3b8;font-weight:500}
 
-/* Responsive tweaks */
+/* Desktop: sidebar left, catalog right */
+main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
+.sidebar{ width:240px; padding:1rem; border-radius:var(--radius); background:linear-gradient(180deg,#fff,#fcfdff); box-shadow:var(--shadow); border:1px solid rgba(12,18,36,0.04); }
+.catalog{ flex:1; }
+
+/* Mobile-only: hide desktop sidebar, use burger drawer */
+/* Mobile-only visibility */
+.mobile-only{ display:none; }
 @media (max-width:960px){
-	.sidebar{display:none}
-	.cart{width:300px}
-	.product-image{height:140px}
+  .mobile-only{ display:inline-flex; }
+  .sidebar{ display:none; }           /* hide desktop sidebar on mobile */
+  main{ flex-direction:column; }      /* stack layout on mobile */
 }
 
-/* Toast notification */
-.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(90deg,#16a34a,#059669);color:white;padding:.9rem 1.1rem;border-radius:12px;box-shadow:0 12px 30px rgba(2,6,23,0.2);font-weight:700;z-index:1400;animation:toast-in .18s ease;max-width:90%;text-align:center}
-@keyframes toast-in{from{transform:translateY(-6px);opacity:0}to{transform:translateY(0);opacity:1}}
+/* Header: left burger, centered title, right cart icon in one line */
+.app-header{
+  display:grid;
+  grid-template-columns: var(--header-icon-size) 1fr var(--header-icon-size);
+  align-items:center;
+  gap:12px;
+  padding:8px 12px;
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  color:#fff;
+  position:sticky; top:0; z-index:100;
+}
 
-/* Product image inside card */
-.product-image { width: 100%; height: 140px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem; }
+/* Title: single line with ellipsis if too long */
+.app-title{
+  margin:0;
+  font-size:1.1rem;
+  text-align:center;
+  line-height:1;
+  white-space: nowrap;        /* prevent wrapping */
+  overflow: hidden;           /* hide overflow */
+  text-overflow: ellipsis;    /* show ellipsis if it overflows */
+}
 
-/* Modal for full product description */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal-content { background: white; padding: 1rem; max-width: 720px; width: 90%; border-radius: 8px; position: relative; max-height: 80vh; overflow: auto; }
-.modal-close { position: absolute; right: 0.5rem; top: 0.25rem; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; }
-.modal-image { width: 100%; height: 320px; object-fit: contain; margin-bottom: 0.5rem; }
-.modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+/* Icon buttons use the shared size */
+.icon-btn{
+  background:transparent; border:none; color:#fff; cursor:pointer; position:relative;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:var(--header-icon-size); height:var(--header-icon-size);
+  padding:0; border-radius:6px; line-height:1;
+}
+.icon-btn .icon-glyph{
+  display:block; width:var(--header-icon-size); height:var(--header-icon-size);
+  background-size:var(--header-icon-size) var(--header-icon-size);
+  background-repeat:no-repeat;
+}
 
-/* Contact block in cart */
-.contact-block { margin-top: 1.25rem; border-top: 1px dashed #e6e6e6; padding-top: 0.75rem; }
-.contact-block h4 { margin: 0 0 0.25rem 0; }
-.contact-phones { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
-.contact-btn { display: inline-block; background: #f3f4f6; border: 1px solid #ddd; padding: 0.4rem 0.6rem; border-radius: 6px; text-decoration: none; color: inherit; }
-.contact-btn:hover { background: #eef2ff; }
-.contact-btn.whatsapp { background: #25D366; color: white; border-color: rgba(0,0,0,0.05); }
-.contact-btn.whatsapp:hover { filter: brightness(0.95); }
+/* Burger glyph scaled to header icon size */
+.icon-btn.burger .icon-glyph{
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='white'><rect x='4' y='6' width='16' height='2' rx='1'/><rect x='4' y='11' width='16' height='2' rx='1'/><rect x='4' y='16' width='16' height='2' rx='1'/></svg>");
+}
+
+/* Cart glyph scaled to header icon size */
+.icon-btn.cart .icon-glyph{
+  background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white'><path d='M7 4h-2l-1 2h-2v2h2l3.6 7.59-1.35 2.41A2 2 0 0 0 9 20h11v-2h-10.42l1.1-2h6.32a2 2 0 0 0 1.79-1.11l3.58-7.16a1 1 0 0 0-.9-1.42H6.63l-.31-.59A2 2 0 0 0 5 4z'/></svg>\");
+}
+
+/* Count badge sized proportionally to the icon */
+.icon-btn .icon-count{
+  position:absolute;
+  top:-4px; right:-4px;
+  min-width:16px; height:16px;
+  padding:0 4px;
+  border-radius:999px;
+  background:#ef4444; color:#fff;
+  font-size:10px; font-weight:700; line-height:16px;
+  display:inline-block; text-align:center;
+}
+
+/* If you also render the inline SVG inside the count, keep it readable */
+.icon-count-cart{
+  width:12px; height:12px; display:inline-block;
+}
+
+/* Drawers */
+.drawer{
+  position:fixed; top:56px; width:86%; max-width:360px; height:calc(100vh - 56px);
+  background:#fff; box-shadow:0 20px 40px rgba(2,6,23,.18);
+  border-radius:0 12px 12px 0; transform:translateX(-100%); transition:transform .2s ease;
+  z-index:950; padding:1rem; overflow:auto;
+}
+.drawer.open{ transform:translateX(0); }
+.drawer-left{ left:0; }
+.drawer-right{
+  right:0; left:auto; border-radius:12px 0 0 12px; transform:translateX(100%);
+}
+.drawer-right.open{ transform:translateX(0); }
+.drawer-backdrop{ position:fixed; inset:0; background:rgba(2,6,23,.35); z-index:900; }
+
+/* Scroll lock when drawers open */
+body.no-scroll{ overflow:hidden; touch-action:none; }
+/* Hide header icons on desktop (Windows page) */
+@media (min-width: 961px) {
+  .app-header .icon-btn.burger,
+  .app-header .icon-btn.cart {
+    display: none !important;
+  }
+}
+
+/* Desktop: make header title a single visible line without wrapping */
+@media (min-width: 961px) {
+  .app-header {
+    display: block;              /* single row header */
+    padding: 12px 16px;
+  }
+
+  .app-title {
+    white-space: nowrap;         /* no wrapping */
+    overflow: visible;           /* do not clip */
+    text-overflow: clip;         /* no ellipsis */
+    text-align: center;          /* center on desktop */
+    font-size: 1.25rem;          /* readable size */
+    line-height: 1;              /* compact line */
+    margin: 0;
+  }
+}
