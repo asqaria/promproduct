@@ -1,7 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function ProductCard({ product, onAdd }) {
   const [open, setOpen] = useState(false);
+
+  // Prevent background scroll when modal is open (mobile)
+  useEffect(() => {
+    const body = document.body;
+    if (open) {
+      body.classList.add("no-scroll");
+    } else {
+      body.classList.remove("no-scroll");
+    }
+    return () => body.classList.remove("no-scroll");
+  }, [open]);
 
   return (
     <>

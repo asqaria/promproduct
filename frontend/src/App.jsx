@@ -40,6 +40,17 @@ export default function App() {
     setGrouped(g);
   }, [products]);
 
+  // Prevent background scroll when mobile categories are open
+  useEffect(() => {
+    const body = document.body;
+    if (mobileCatsOpen) {
+      body.classList.add("no-scroll");
+    } else {
+      body.classList.remove("no-scroll");
+    }
+    return () => body.classList.remove("no-scroll");
+  }, [mobileCatsOpen]);
+
   function addToCart(product) {
     setCart((c) => [...c, product]);
   }
@@ -70,7 +81,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <header>
+      <header className="app-header">
         <h1>ТОО Батыс Курылыс XXI</h1>
       </header>
 
@@ -88,6 +99,9 @@ export default function App() {
             Категории
           </button>
         </div>
+
+        {/* Mobile overlay behind the sidebar to close it on tap */}
+        {mobileCatsOpen && <div className="drawer-backdrop" onClick={() => setMobileCatsOpen(false)} />}
 
         <aside
           id="mobile-categories"
