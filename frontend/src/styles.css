@@ -135,14 +135,14 @@ main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
   background-repeat:no-repeat;
 }
 
-/* Burger glyph scaled to header icon size */
+/* Burger glyph (24x24) */
 .icon-btn.burger .icon-glyph{
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='white'><rect x='4' y='6' width='16' height='2' rx='1'/><rect x='4' y='11' width='16' height='2' rx='1'/><rect x='4' y='16' width='16' height='2' rx='1'/></svg>");
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0id2hpdGUiPjxyZWN0IHg9IjQiIHk9IjYiIHdpZHRoPSIxNiIgaGVpZ2h0PSIyIiByeD0iMSIvPjxyZWN0IHg9IjQiIHk9IjExIiB3aWR0aD0iMTYiIGhlaWdodD0iMiIgcng9IjEiLz48cmVjdCB4PSI0IiB5PSIxNiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjIiIHJ4PSIxIi8+PC9zdmc+");
 }
 
-/* Cart glyph scaled to header icon size */
+/* Cart glyph (24x24) */
 .icon-btn.cart .icon-glyph{
-  background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white'><path d='M7 4h-2l-1 2h-2v2h2l3.6 7.59-1.35 2.41A2 2 0 0 0 9 20h11v-2h-10.42l1.1-2h6.32a2 2 0 0 0 1.79-1.11l3.58-7.16a1 1 0 0 0-.9-1.42H6.63l-.31-.59A2 2 0 0 0 5 4z'/></svg>\");
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTcgNGgtMmwtMSAySDF2MmgyaDMuNiA3LjU5LTEuMzUgMi40MWEyIDIgMCAwIDAgMS43NCAyLjk5aDExdi0yaC0xMC40MmwxLjEtMmg2LjMyYTIgMiAwIDAgMCAxLjc5LTEuMTFsMy41OC03LjE2YTEgMSAwIDAgMC0uOS0xLjQySDYuNjNsLS4zMS0uNTlhMiAyIDAgMCAwLTEuNzktMS4wMXoiLz48L3N2Zz4=");
 }
 
 /* Count badge sized proportionally to the icon */
