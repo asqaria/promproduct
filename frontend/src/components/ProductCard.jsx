@@ -17,7 +17,6 @@ export default function ProductCard({ product, onAdd }) {
         )}
         <div className="card-header">{product.name}</div>
         <div className="card-body">
-          {/* <div className="price">${product.price?.toFixed(2)}</div> */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -32,15 +31,19 @@ export default function ProductCard({ product, onAdd }) {
       {open && (
         <div className="modal-overlay" onClick={() => setOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setOpen(false)}>×</button>
+            <button className="modal-close" onClick={() => setOpen(false)} aria-label="Закрыть">×</button>
             {product.pic_url && (
               <img src={product.pic_url} alt={product.name} className="modal-image" />
             )}
             <h2>{product.name}</h2>
-            <p>{product.description}</p>
+            <div
+              className="modal-description"
+              dangerouslySetInnerHTML={{ __html: product?.description ?? "" }}
+            />
             <div className="modal-footer">
-              {/* <div className="price">${product.price?.toFixed(2)}</div> */}
-              <button onClick={() => { onAdd(product); setOpen(false); }}>Добавить в корзину</button>
+              <button onClick={() => { onAdd(product); setOpen(false); }}>
+                Добавить в корзину
+              </button>
             </div>
           </div>
         </div>
