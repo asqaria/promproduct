@@ -1,0 +1,3 @@
+prom-products.kz {
+  reverse_proxy frontend:80
+}
