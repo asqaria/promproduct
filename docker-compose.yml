@@ -52,6 +52,8 @@ services:
   frontend:
     build: ./frontend
     container_name: frontend
+    environment:
+      REACT_APP_API_URL: "https://93.115.14.68:8443"
     expose:
       - "80"
     depends_on:
