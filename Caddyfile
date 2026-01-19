@@ -1,3 +1,10 @@
 prom-products.kz {
   reverse_proxy frontend:80
+},
+prom-products.kz/api* {
+    reverse_proxy https://promproduct-app:8443 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
 }
