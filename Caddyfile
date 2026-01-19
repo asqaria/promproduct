@@ -1,10 +1,16 @@
 prom-products.kz {
-  reverse_proxy frontend:80
-},
-prom-products.kz/api* {
-    reverse_proxy https://promproduct-app:8443 {
-        transport http {
-            tls_insecure_skip_verify
-        }
+    # Frontend
+    reverse_proxy frontend:80
+
+    # API: strip "/api" before proxying
+    handle_path /api* {
+        reverse_proxy app:8002
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer-when-downgrade"
     }
 }

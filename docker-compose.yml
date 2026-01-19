@@ -1,7 +1,9 @@
 version: "3.8"
+
 services:
   caddy:
     image: caddy:2
+    container_name: caddy
     ports:
       - "80:80"
       - "443:443"
@@ -10,7 +12,10 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - frontend
+      frontend:
+        condition: service_started
+      app:
+        condition: service_started
 
   postgresql-db:
     image: postgres:16
@@ -19,16 +24,18 @@ services:
       POSTGRES_USER: appuser
       POSTGRES_PASSWORD: apppassword
       POSTGRES_DB: appdb
-    ports:
-      - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
     container_name: promproduct-app
     environment:
-      # adjust your app's DB connection env name as needed
       DATABASE_URL: "postgresql+asyncpg://appuser:apppassword@postgresql-db:5432/appdb"
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
@@ -37,27 +44,29 @@ services:
       ADMIN_EMAIL: BATYSKURYLYSXXI@gmail.com
       FROM_EMAIL: BATYSKURYLYSXXI@gmail.com
     depends_on:
-      - postgresql-db
-    volumes:
-      - ./certs:/certs:ro
-    command: >
-      uvicorn main:app
-      --host 0.0.0.0
-      --port 8443
-      --ssl-keyfile /certs/key.pem
-      --ssl-certfile /certs/cert.pem
-    ports:
-      - "8443:8443"
+      postgresql-db:
+        condition: service_healthy
+    command:
+      uvicorn main:app --host 0.0.0.0 --port 8002
+    expose:
+      - "8002"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: "https://prom-products.kz/api"
     container_name: frontend
-    environment:
-      REACT_APP_API_URL: "https://93.115.14.68:8443"
     expose:
       - "80"
     depends_on:
-      - app
+      app:
+        condition: service_started
 
 volumes:
   postgres-data:
