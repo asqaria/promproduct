@@ -44,8 +44,8 @@ services:
   frontend:
     build: ./frontend
     container_name: frontend
-    ports:
-      - "3000:80"
+    expose:
+      - "80"
     depends_on:
       - app
 
