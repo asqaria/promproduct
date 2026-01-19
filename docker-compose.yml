@@ -38,8 +38,16 @@ services:
       FROM_EMAIL: BATYSKURYLYSXXI@gmail.com
     depends_on:
       - postgresql-db
+    volumes:
+      - ./certs:/certs:ro
+    command: >
+      uvicorn main:app
+      --host 0.0.0.0
+      --port 8443
+      --ssl-keyfile /certs/key.pem
+      --ssl-certfile /certs/cert.pem
     ports:
-      - "8002:8002"
+      - "8443:8443"
 
   frontend:
     build: ./frontend
