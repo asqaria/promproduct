@@ -13,3 +13,4 @@ __pycache__/
 .pytest_cache/
 frontend/node_modules/
 /.vs
+/frontend/dist
