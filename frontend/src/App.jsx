@@ -143,37 +143,27 @@ export default function App() {
         <h1 className="app-title">ТОО Батыс Курылыс XXI</h1>
 
         <div className="header-right">
-          {/* Admin/Login link */}
-          {isAdminAuthenticated ? (
-            <>
+          {/* Admin/Login link (only show on admin page) */}
+          {currentPage === "admin" &&
+            (isAdminAuthenticated ? (
+              <>
+                <button
+                  className="nav-link logout-btn"
+                  onClick={handleAdminLogout}
+                  aria-label="Logout"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
               <button
-                className={`nav-link ${currentPage === "admin" ? "active" : ""}`}
-                onClick={() =>
-                  navigateTo(currentPage === "admin" ? "catalog" : "admin")
-                }
-                aria-label={
-                  currentPage === "admin" ? "Back to catalog" : "Go to admin"
-                }
+                className="nav-link"
+                onClick={() => navigateTo("admin")}
+                aria-label="Go to admin"
               >
-                {currentPage === "admin" ? "← Catalog" : "⚙ Admin"}
+                🔐 Login
               </button>
-              <button
-                className="nav-link logout-btn"
-                onClick={handleAdminLogout}
-                aria-label="Logout"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <button
-              className="nav-link"
-              onClick={() => navigateTo("admin")}
-              aria-label="Go to admin"
-            >
-              🔐 Login
-            </button>
-          )}
+            ))}
 
           {/* Cart icon on the right with count (only show on catalog) */}
           {currentPage === "catalog" && (

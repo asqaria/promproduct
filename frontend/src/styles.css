@@ -232,6 +232,39 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
   color: #0f172a;
 }
 
+.admin-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.admin-header-actions h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.btn-back {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-back:hover {
+  background: var(--primary);
+  color: white;
+}
+
 .btn-primary {
   background: var(--primary);
   color: white;

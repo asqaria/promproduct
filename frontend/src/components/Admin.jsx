@@ -122,7 +122,12 @@ export default function Admin({ onLogout }) {
   return (
     <div className="admin-container">
       <div className="admin-sidebar">
-        <h2>Products</h2>
+        <div className="admin-header-actions">
+          <h2>Products</h2>
+          <button className="btn-back" onClick={onLogout}>
+            ← Back to Shop
+          </button>
+        </div>
         <button className="btn-primary" onClick={handleAddNew}>
           + Add New Product
         </button>
