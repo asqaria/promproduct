@@ -10,12 +10,20 @@ export default function Cart({ items, onRemove, onSend, sending }) {
   return (
     <aside className="cart">
       <h3>Корзина</h3>
-      <div>Чтобы узнать цену, добавьте товар в корзину для рассмотрения. Мы с вами свяжемся.</div>
+      <div>
+        Чтобы узнать цену, добавьте товар в корзину для рассмотрения. Мы с вами
+        свяжемся.
+      </div>
       <ul>
         {items.map((it, idx) => (
           <li key={idx}>
-            {it.name} - {typeof it.price === "number" ? `$${it.price.toFixed(2)}` : ""}
-            <button onClick={() => onRemove(idx)} aria-label={`Удалить ${it.name}`}>x</button>
+            {it.name}
+            <button
+              onClick={() => onRemove(idx)}
+              aria-label={`Удалить ${it.name}`}
+            >
+              x
+            </button>
           </li>
         ))}
       </ul>
@@ -41,17 +49,34 @@ export default function Cart({ items, onRemove, onSend, sending }) {
       </div>
 
       <div className="cart-footer">
-        <button onClick={() => onSend({ name: name.trim(), phone: phone.trim() })} disabled={!canSend || sending}>
+        <button
+          onClick={() => onSend({ name: name.trim(), phone: phone.trim() })}
+          disabled={!canSend || sending}
+        >
           {sending ? "Отправляем..." : "Отправить запрос администратору"}
         </button>
       </div>
 
       <div className="contact-block">
         <h3>Контакты</h3>
-        <p>Казахстан, город Актобе, СК Рассвет-Дидар, 45</p>
+        <p>Казахстан, город Астана, улица Керей Жанибек хандар, 50/3</p>
         <div className="contact-phones">
-          <a href="https://wa.me/77773054243" target="_blank" rel="noreferrer" className="contact-btn whatsapp">WhatsApp +7 777 305 4243</a>
-          <a href="https://wa.me/77773773763" target="_blank" rel="noreferrer" className="contact-btn whatsapp">WhatsApp +7 777 377 3763</a>
+          <a
+            href="https://wa.me/77773054243"
+            target="_blank"
+            rel="noreferrer"
+            className="contact-btn whatsapp"
+          >
+            WhatsApp +7 777 305 4243
+          </a>
+          <a
+            href="https://wa.me/77773773763"
+            target="_blank"
+            rel="noreferrer"
+            className="contact-btn whatsapp"
+          >
+            WhatsApp +7 777 377 3763
+          </a>
         </div>
       </div>
     </aside>
