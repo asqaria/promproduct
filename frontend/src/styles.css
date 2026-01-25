@@ -204,3 +204,339 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
     margin: 0;
   }
 }
+
+/* Admin Page */
+.admin-container {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  height: calc(100vh - 80px);
+  background: var(--bg);
+}
+
+.admin-sidebar {
+  width: 320px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(12, 18, 36, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-sidebar h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.products-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.product-list-item {
+  padding: 0.75rem;
+  border: 1px solid rgba(12, 18, 36, 0.06);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.product-list-item:hover {
+  background: #f8fafc;
+  border-color: var(--primary);
+}
+
+.product-list-item.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.product-name {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-thumb {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.admin-editor {
+  flex: 1;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(12, 18, 36, 0.04);
+  overflow-y: auto;
+}
+
+.admin-editor h2 {
+  margin: 0 0 1.25rem 0;
+  color: #0f172a;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(12, 18, 36, 0.08);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: white;
+  color: #0f172a;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(12, 18, 36, 0.04);
+}
+
+.btn-save {
+  flex: 1;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.btn-save:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.btn-delete {
+  flex: 1;
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.no-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.nav-link {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: white;
+}
+
+.header-right {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* Mobile responsive for admin */
+@media (max-width: 960px) {
+  .admin-container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    max-height: 40vh;
+  }
+
+  .admin-editor {
+    width: 100%;
+  }
+}
+
+/* Admin Login Page */
+.admin-login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 80px);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+.login-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 2.5rem;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card h2 {
+  margin: 0 0 1.75rem 0;
+  text-align: center;
+  color: #0f172a;
+  font-size: 1.5rem;
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-card .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-card label {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.login-card input {
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: white;
+  color: #0f172a;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.login-error {
+  padding: 0.75rem 1rem;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #b91c1c;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.login-btn {
+  padding: 0.9rem 1.25rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.login-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.logout-btn {
+  background: #dc2626;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+}
