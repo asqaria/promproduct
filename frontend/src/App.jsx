@@ -6,6 +6,7 @@ import CategoryDetail from "./components/CategoryDetail";
 import Cart from "./components/Cart";
 import Admin from "./components/Admin";
 import AdminLogin from "./components/AdminLogin";
+import logo from "./img/logo_white.png";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("catalog"); // "catalog", "admin", "product", or "category"
@@ -138,7 +139,7 @@ export default function App() {
     setGrouped(g);
 
     // Add uncategorized category if there are products without categories
-    if (g[0] && g[0].items.length > 0 && !categories.some(c => c.id === 0)) {
+    if (g[0] && g[0].items.length > 0 && !categories.some((c) => c.id === 0)) {
       setCategories([...categories, { id: 0, name: "Uncategorized" }]);
     }
   }, [products, categories]);
@@ -198,11 +199,7 @@ export default function App() {
         </button>
 
         {/* Title centered */}
-        <img
-          src="src/img/logo_white.png"
-          alt="ТОО Батыс Курылыс XXI"
-          className="app-logo"
-        />
+        <img src={logo} alt="ТОО Батыс Курылыс XXI" className="app-logo" />
 
         <div className="header-right">
           {/* Admin/Login link (only show on admin page) */}
