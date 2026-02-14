@@ -42,6 +42,7 @@ export default function App() {
       setCurrentPage("product");
       setCurrentProductId(productId);
       setCurrentCategoryId(null);
+      setSelectedCategory(-1); // Don't highlight any category when viewing product
     } else if (hash.startsWith("category/")) {
       const categoryId = parseInt(hash.split("/")[1]);
       setCurrentPage("category");
@@ -63,6 +64,7 @@ export default function App() {
         setCurrentPage("product");
         setCurrentProductId(productId);
         setCurrentCategoryId(null);
+        setSelectedCategory(-1); // Don't highlight any category when viewing product
       } else if (newHash.startsWith("category/")) {
         const categoryId = parseInt(newHash.split("/")[1]);
         setCurrentPage("category");
@@ -134,7 +136,12 @@ export default function App() {
       g[cid].items.push(p);
     });
     setGrouped(g);
-  }, [products]);
+
+    // Add uncategorized category if there are products without categories
+    if (g[0] && g[0].items.length > 0 && !categories.some(c => c.id === 0)) {
+      setCategories([...categories, { id: 0, name: "Uncategorized" }]);
+    }
+  }, [products, categories]);
 
   // Lock body scroll when any mobile drawer is open
   useEffect(() => {
@@ -347,7 +354,7 @@ export default function App() {
                 className={
                   selectedCategory === null ? "cat-item active" : "cat-item"
                 }
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => navigateTo("catalog")}
               >
                 Все
               </button>
@@ -365,7 +372,7 @@ export default function App() {
                     {grouped[c.id]?.items.map((p) => (
                       <button
                         key={p.id}
-                        className="product-submenu-item"
+                        className={`product-submenu-item ${currentProductId === p.id ? "active" : ""}`}
                         onClick={() => navigateToProduct(p.id)}
                       >
                         {p.name}
@@ -404,7 +411,7 @@ export default function App() {
                 className={
                   selectedCategory === null ? "cat-item active" : "cat-item"
                 }
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => navigateTo("catalog")}
               >
                 Все
               </button>
@@ -422,7 +429,7 @@ export default function App() {
                     {grouped[c.id]?.items.map((p) => (
                       <button
                         key={p.id}
-                        className="product-submenu-item"
+                        className={`product-submenu-item ${currentProductId === p.id ? "active" : ""}`}
                         onClick={() => navigateToProduct(p.id)}
                       >
                         {p.name}
@@ -481,7 +488,7 @@ export default function App() {
                     {grouped[c.id]?.items.map((p) => (
                       <button
                         key={p.id}
-                        className="product-submenu-item"
+                        className={`product-submenu-item ${currentProductId === p.id ? "active" : ""}`}
                         onClick={() => navigateToProduct(p.id)}
                       >
                         {p.name}

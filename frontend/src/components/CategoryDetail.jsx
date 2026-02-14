@@ -7,8 +7,6 @@ export default function CategoryDetail({ categoryId, categories, products, onAdd
   return (
     <section className="catalog">
       <div className="category-detail">
-        <button className="back-button" onClick={onBack}>← Назад</button>
-
         <div className="category-header">
           <h1>{category?.name || "Категория"}</h1>
           <p>{products.length} товаров</p>
