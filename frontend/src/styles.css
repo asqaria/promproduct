@@ -44,6 +44,7 @@ main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
 .card-header{font-weight:600;margin-bottom:0.35rem;color:#0f172a}
 .card-body{display:flex;align-items:center;justify-content:space-between;gap:0.5rem}
 .card .price{font-weight:700;color:var(--primary)}
+.card-description{margin:0.5rem 0; line-height:1.5;}
 
 button{background:var(--primary);color:white;border:none;padding:.5rem .75rem;border-radius:8px;cursor:pointer;font-weight:600;transition:transform .12s ease,filter .12s ease}
 button:hover{transform:translateY(-1px);filter:brightness(1.02)}
@@ -716,5 +717,64 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
   .html-preview-live {
     min-height: 300px;
     max-height: 300px;
+  }
+}
+
+/* Product Detail Page */
+.product-detail {
+  padding: 1.25rem 0;
+}
+
+.back-button {
+  background: var(--muted);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.back-button:hover {
+  background: #374151;
+}
+
+.product-detail-content {
+  max-width: 800px;
+}
+
+.product-detail-info h1 {
+  margin: 0 0 1rem 0;
+  color: #0f172a;
+  font-size: 2rem;
+}
+
+.product-detail-description {
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  color: #374151;
+}
+
+.add-to-cart-button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.add-to-cart-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+}
+
+/* Mobile responsive for product detail */
+@media (max-width: 768px) {
+  .product-detail-info h1 {
+    font-size: 1.5rem;
   }
 }

@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { fetchProducts, fetchCategories, sendCartToAdmin } from "./api";
 import ProductCard from "./components/ProductCard";
+import ProductDetail from "./components/ProductDetail";
 import Cart from "./components/Cart";
 import Admin from "./components/Admin";
 import AdminLogin from "./components/AdminLogin";
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState("catalog"); // "catalog" or "admin"
+  const [currentPage, setCurrentPage] = useState("catalog"); // "catalog", "admin", or "product"
+  const [currentProductId, setCurrentProductId] = useState(null);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -32,11 +34,27 @@ export default function App() {
   // Handle hash-based routing
   useEffect(() => {
     const hash = window.location.hash.slice(1) || "catalog"; // Remove # and default to "catalog"
-    setCurrentPage(hash);
+
+    if (hash.startsWith("product/")) {
+      const productId = parseInt(hash.split("/")[1]);
+      setCurrentPage("product");
+      setCurrentProductId(productId);
+    } else {
+      setCurrentPage(hash);
+      setCurrentProductId(null);
+    }
 
     const handleHashChange = () => {
       const newHash = window.location.hash.slice(1) || "catalog";
-      setCurrentPage(newHash);
+
+      if (newHash.startsWith("product/")) {
+        const productId = parseInt(newHash.split("/")[1]);
+        setCurrentPage("product");
+        setCurrentProductId(productId);
+      } else {
+        setCurrentPage(newHash);
+        setCurrentProductId(null);
+      }
     };
 
     window.addEventListener("hashchange", handleHashChange);
@@ -45,6 +63,10 @@ export default function App() {
 
   const navigateTo = (page) => {
     window.location.hash = page;
+  };
+
+  const navigateToProduct = (productId) => {
+    window.location.hash = `product/${productId}`;
   };
 
   const handleAdminLogin = () => {
@@ -280,6 +302,51 @@ export default function App() {
         ) : (
           <AdminLogin onLogin={handleAdminLogin} />
         )
+      ) : currentPage === "product" ? (
+        <main>
+          {toast && <div className="toast">{toast}</div>}
+
+          {/* Desktop: sidebar left */}
+          <aside className="sidebar">
+            <h3>Категории</h3>
+            <div className="category-list">
+              <button
+                className={
+                  selectedCategory === null ? "cat-item active" : "cat-item"
+                }
+                onClick={() => setSelectedCategory(null)}
+              >
+                Все
+              </button>
+              {categories.map((c) => (
+                <button
+                  key={c.id}
+                  className={
+                    selectedCategory === c.id ? "cat-item active" : "cat-item"
+                  }
+                  onClick={() => setSelectedCategory(c.id)}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </aside>
+
+          <ProductDetail
+            productId={currentProductId}
+            products={products}
+            onAdd={addToCart}
+            onBack={() => navigateTo("catalog")}
+          />
+
+          {/* Desktop inline cart remains */}
+          <Cart
+            items={cart}
+            onRemove={removeFromCart}
+            onSend={sendToAdmin}
+            sending={sending}
+          />
+        </main>
       ) : (
         <main>
           {toast && <div className="toast">{toast}</div>}
@@ -323,7 +390,12 @@ export default function App() {
                   <h2>{g.category.name}</h2>
                   <div className="product-grid">
                     {g.items.map((p) => (
-                      <ProductCard key={p.id} product={p} onAdd={addToCart} />
+                      <ProductCard
+                        key={p.id}
+                        product={p}
+                        onAdd={addToCart}
+                        onClick={() => navigateToProduct(p.id)}
+                      />
                     ))}
                   </div>
                 </div>
