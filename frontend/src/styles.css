@@ -24,10 +24,17 @@ button { padding: 0.35rem 0.6rem; margin-top: 0.5rem; cursor: pointer; }
 }
 
 *{box-sizing:border-box}
-body{font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; padding:0; background:linear-gradient(180deg,var(--bg),#fff); color:#0f172a}
+body{font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; padding:0; background:linear-gradient(180deg,var(--bg),#fff); color:#0f172a; min-width: 1400px;}
 
 .app header{padding:1.25rem 1.5rem; background:linear-gradient(90deg,var(--primary),var(--accent)); color:white}
 .app header h1{margin:0;font-size:1.25rem;letter-spacing:0.2px}
+
+/* Logo styling */
+.app-logo {
+  height: 40px;
+  object-fit: contain;
+  max-width: 200px;
+}
 
 /* Layout: sidebar + catalog + cart */
 main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
@@ -44,6 +51,7 @@ main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
 .card-header{font-weight:600;margin-bottom:0.35rem;color:#0f172a}
 .card-body{display:flex;align-items:center;justify-content:space-between;gap:0.5rem}
 .card .price{font-weight:700;color:var(--primary)}
+.card-description{margin:0.5rem 0; line-height:1.5;}
 
 button{background:var(--primary);color:white;border:none;padding:.5rem .75rem;border-radius:8px;cursor:pointer;font-weight:600;transition:transform .12s ease,filter .12s ease}
 button:hover{transform:translateY(-1px);filter:brightness(1.02)}
@@ -79,6 +87,13 @@ button:disabled{opacity:.6;cursor:not-allowed}
 .cat-item{background:transparent;border:1px solid rgba(12,18,36,0.04);padding:.5rem .65rem;border-radius:8px;text-align:left;cursor:pointer;font-weight:600;color:var(--muted)}
 .cat-item.active{background:var(--primary);color:white;border-color:var(--primary)}
 
+/* Category groups with submenus */
+.category-group{margin-bottom:.5rem}
+.product-submenu{display:flex;flex-direction:column;margin-left:1rem;margin-top:.25rem;gap:.25rem}
+.product-submenu-item{background:transparent;border:none;padding:.25rem .5rem;border-radius:4px;text-align:left;cursor:pointer;font-weight:500;color:#64748b;font-size:.9rem}
+.product-submenu-item:hover{background:#f1f5f9;color:#334155}
+.product-submenu-item.active{background:var(--primary);color:white}
+
 /* Form inputs inside cart */
 .form-row{display:flex;flex-direction:column;gap:0.35rem;margin-top:0.6rem}
 .form-row label{font-size:0.85rem;color:var(--muted)}
@@ -93,12 +108,6 @@ main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
 /* Mobile-only: hide desktop sidebar, use burger drawer */
 /* Mobile-only visibility */
 .mobile-only{ display:none; }
-@media (max-width:960px){
-  .mobile-only{ display:inline-flex; }
-  .sidebar{ display:none; }           /* hide desktop sidebar on mobile */
-  main{ flex-direction:column; }      /* stack layout on mobile */
-}
-
 /* Header: left burger, centered title, right cart icon in one line */
 .app-header{
   display:grid;
@@ -111,15 +120,13 @@ main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
   position:sticky; top:0; z-index:100;
 }
 
-/* Title: single line with ellipsis if too long */
-.app-title{
-  margin:0;
-  font-size:1.1rem;
-  text-align:center;
-  line-height:1;
-  white-space: nowrap;        /* prevent wrapping */
-  overflow: hidden;           /* hide overflow */
-  text-overflow: ellipsis;    /* show ellipsis if it overflows */
+/* Logo: centered with max width */
+.app-logo{
+  height: 40px;
+  object-fit: contain;
+  max-width: 200px;
+  display: block;
+  margin: 0 auto;
 }
 
 /* Icon buttons use the shared size */
@@ -194,14 +201,12 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
     padding: 12px 16px;
   }
 
-  .app-title {
-    white-space: nowrap;         /* no wrapping */
-    overflow: visible;           /* do not clip */
-    text-overflow: clip;         /* no ellipsis */
-    text-align: center;          /* center on desktop */
-    font-size: 1.25rem;          /* readable size */
-    line-height: 1;              /* compact line */
-    margin: 0;
+  .app-logo {
+    height: 48px;                /* larger on desktop */
+    max-width: 250px;            /* more space on desktop */
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
   }
 }
 
@@ -454,23 +459,6 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
   align-items: center;
 }
 
-/* Mobile responsive for admin */
-@media (max-width: 960px) {
-  .admin-container {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .admin-sidebar {
-    width: 100%;
-    max-height: 40vh;
-  }
-
-  .admin-editor {
-    width: 100%;
-  }
-}
-
 /* Admin Login Page */
 .admin-login-container {
   display: flex;
@@ -704,17 +692,87 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
 }
 
 /* Responsive: stack on smaller screens */
-@media (max-width: 1200px) {
-  .html-editor-split {
-    grid-template-columns: 1fr;
-  }
+/* Product Detail Page */
+.product-detail {
+  padding: 1.25rem 0;
+}
 
-  .html-editor {
-    min-height: 300px;
-  }
+.back-button {
+  background: var(--muted);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
 
-  .html-preview-live {
-    min-height: 300px;
-    max-height: 300px;
-  }
+.back-button:hover {
+  background: #374151;
+}
+
+.product-detail-content {
+  max-width: 800px;
+}
+
+.product-detail-info h1 {
+  margin: 0 0 1rem 0;
+  color: #0f172a;
+  font-size: 2rem;
+}
+
+.product-detail-description {
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  color: #374151;
+}
+
+.add-to-cart-button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.add-to-cart-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+}
+
+/* Mobile responsive for product detail */
+/* Category Detail Page */
+.category-detail {
+  padding: 1.25rem 0;
+}
+
+.category-header {
+  margin-bottom: 2rem;
+}
+
+.category-header h1 {
+  margin: 0 0 0.5rem 0;
+  color: #0f172a;
+  font-size: 2.5rem;
+}
+
+.category-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+.empty-category {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
+}
+
+.empty-category p {
+  font-size: 1.2rem;
+  margin: 0;
 }
