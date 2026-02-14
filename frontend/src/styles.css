@@ -24,7 +24,7 @@ button { padding: 0.35rem 0.6rem; margin-top: 0.5rem; cursor: pointer; }
 }
 
 *{box-sizing:border-box}
-body{font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; padding:0; background:linear-gradient(180deg,var(--bg),#fff); color:#0f172a}
+body{font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; padding:0; background:linear-gradient(180deg,var(--bg),#fff); color:#0f172a; min-width: 1400px;}
 
 .app header{padding:1.25rem 1.5rem; background:linear-gradient(90deg,var(--primary),var(--accent)); color:white}
 .app header h1{margin:0;font-size:1.25rem;letter-spacing:0.2px}
@@ -107,12 +107,6 @@ main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
 /* Mobile-only: hide desktop sidebar, use burger drawer */
 /* Mobile-only visibility */
 .mobile-only{ display:none; }
-@media (max-width:960px){
-  .mobile-only{ display:inline-flex; }
-  .sidebar{ display:none; }           /* hide desktop sidebar on mobile */
-  main{ flex-direction:column; }      /* stack layout on mobile */
-}
-
 /* Header: left burger, centered title, right cart icon in one line */
 .app-header{
   display:grid;
@@ -464,23 +458,6 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
   align-items: center;
 }
 
-/* Mobile responsive for admin */
-@media (max-width: 960px) {
-  .admin-container {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .admin-sidebar {
-    width: 100%;
-    max-height: 40vh;
-  }
-
-  .admin-editor {
-    width: 100%;
-  }
-}
-
 /* Admin Login Page */
 .admin-login-container {
   display: flex;
@@ -714,21 +691,6 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
 }
 
 /* Responsive: stack on smaller screens */
-@media (max-width: 1200px) {
-  .html-editor-split {
-    grid-template-columns: 1fr;
-  }
-
-  .html-editor {
-    min-height: 300px;
-  }
-
-  .html-preview-live {
-    min-height: 300px;
-    max-height: 300px;
-  }
-}
-
 /* Product Detail Page */
 .product-detail {
   padding: 1.25rem 0;
@@ -782,8 +744,34 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
 }
 
 /* Mobile responsive for product detail */
-@media (max-width: 768px) {
-  .product-detail-info h1 {
-    font-size: 1.5rem;
-  }
+/* Category Detail Page */
+.category-detail {
+  padding: 1.25rem 0;
+}
+
+.category-header {
+  margin-bottom: 2rem;
+}
+
+.category-header h1 {
+  margin: 0 0 0.5rem 0;
+  color: #0f172a;
+  font-size: 2.5rem;
+}
+
+.category-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+.empty-category {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
+}
+
+.empty-category p {
+  font-size: 1.2rem;
+  margin: 0;
 }
