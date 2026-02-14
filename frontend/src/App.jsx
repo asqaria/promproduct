@@ -162,7 +162,11 @@ export default function App() {
         </button>
 
         {/* Title centered */}
-        <h1 className="app-title">ТОО Батыс Курылыс XXI</h1>
+        <img
+          src="src/img/logo_white.png"
+          alt="ТОО Батыс Курылыс XXI"
+          className="app-logo"
+        />
 
         <div className="header-right">
           {/* Admin/Login link (only show on admin page) */}
@@ -319,15 +323,27 @@ export default function App() {
                 Все
               </button>
               {categories.map((c) => (
-                <button
-                  key={c.id}
-                  className={
-                    selectedCategory === c.id ? "cat-item active" : "cat-item"
-                  }
-                  onClick={() => setSelectedCategory(c.id)}
-                >
-                  {c.name}
-                </button>
+                <div key={c.id} className="category-group">
+                  <button
+                    className={
+                      selectedCategory === c.id ? "cat-item active" : "cat-item"
+                    }
+                    onClick={() => setSelectedCategory(c.id)}
+                  >
+                    {c.name}
+                  </button>
+                  <div className="product-submenu">
+                    {grouped[c.id]?.items.map((p) => (
+                      <button
+                        key={p.id}
+                        className="product-submenu-item"
+                        onClick={() => navigateToProduct(p.id)}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </aside>
@@ -364,15 +380,27 @@ export default function App() {
                 Все
               </button>
               {categories.map((c) => (
-                <button
-                  key={c.id}
-                  className={
-                    selectedCategory === c.id ? "cat-item active" : "cat-item"
-                  }
-                  onClick={() => setSelectedCategory(c.id)}
-                >
-                  {c.name}
-                </button>
+                <div key={c.id} className="category-group">
+                  <button
+                    className={
+                      selectedCategory === c.id ? "cat-item active" : "cat-item"
+                    }
+                    onClick={() => setSelectedCategory(c.id)}
+                  >
+                    {c.name}
+                  </button>
+                  <div className="product-submenu">
+                    {grouped[c.id]?.items.map((p) => (
+                      <button
+                        key={p.id}
+                        className="product-submenu-item"
+                        onClick={() => navigateToProduct(p.id)}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </aside>
