@@ -185,22 +185,10 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <button
-          className="icon-btn burger"
-          aria-label="Открыть категории"
-          aria-expanded={catsOpen}
-          aria-controls="drawer-categories"
-          onClick={() => {
-            setCatsOpen((v) => !v);
-            if (cartOpen) setCartOpen(false);
-          }}
-        >
-          <span className="icon-glyph" aria-hidden="true" />
-        </button>
+
 
         {/* Title centered */}
         <img src={logo} alt="ТОО Батыс Курылыс XXI" className="app-logo" />
-
         <div className="header-right">
           {/* Admin/Login link (only show on admin page) */}
           {currentPage === "admin" &&

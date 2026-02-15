@@ -79,6 +79,23 @@ export default function Cart({ items, onRemove, onSend, sending }) {
           </a>
         </div>
       </div>
+
+      <div className="contact-block">
+  <h3>Прайс-лист</h3>
+
+  <p className="contact-desc">
+    Актуальный список товаров и цен в формате Excel
+  </p>
+
+  <a
+    href="/files/pricelist.xlsx"
+    target="_blank"
+    rel="noreferrer"
+    className="download-btn"
+  >
+    📥 Скачать прайс-лист
+  </a>
+</div>
     </aside>
   );
 }
