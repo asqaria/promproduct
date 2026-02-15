@@ -26,7 +26,6 @@ Install Python requirements and create tables:
 
 ```powershell
 python -m pip install -r requirements.txt
-python create_tables.py
 ```
 
 Stop and remove containers:
