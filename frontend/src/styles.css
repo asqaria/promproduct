@@ -31,9 +31,9 @@ body{font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, "Segoe UI"
 
 /* Logo styling */
 .app-logo {
-  height: 40px;
+  height: 60px;
   object-fit: contain;
-  max-width: 200px;
+  max-width: 300px;
 }
 
 /* Layout: sidebar + catalog + cart */
@@ -112,7 +112,7 @@ main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
 .app-header{
   display:grid;
   grid-template-columns: var(--header-icon-size) 1fr var(--header-icon-size);
-  align-items:center;
+  align-items:left;
   gap:12px;
   padding:8px 12px;
   background:linear-gradient(90deg,var(--primary),var(--accent));
@@ -122,9 +122,9 @@ main{ display:flex; gap:1rem; padding:1.25rem; align-items:flex-start; }
 
 /* Logo: centered with max width */
 .app-logo{
-  height: 40px;
+  height: 60px;
   object-fit: contain;
-  max-width: 200px;
+  max-width: 300px;
   display: block;
   margin: 0 auto;
 }
@@ -202,11 +202,11 @@ body.no-scroll{ overflow:hidden; touch-action:none; }
   }
 
   .app-logo {
-    height: 48px;                /* larger on desktop */
+    height: 100px;                /* larger on desktop */
     max-width: 250px;            /* more space on desktop */
     object-fit: contain;
     display: block;
-    margin: 0 auto;
+    margin-left: 0;
   }
 }
 
