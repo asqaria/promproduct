@@ -185,62 +185,8 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-
-
         {/* Title centered */}
         <img src={logo} alt="ТОО Батыс Курылыс XXI" className="app-logo" />
-        <div className="header-right">
-          {/* Admin/Login link (only show on admin page) */}
-          {currentPage === "admin" &&
-            (isAdminAuthenticated ? (
-              <>
-                <button
-                  className="nav-link logout-btn"
-                  onClick={handleAdminLogout}
-                  aria-label="Logout"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <button
-                className="nav-link"
-                onClick={() => navigateTo("admin")}
-                aria-label="Go to admin"
-              >
-                🔐 Login
-              </button>
-            ))}
-
-          {/* Cart icon on the right with count (only show on catalog) */}
-          {currentPage === "catalog" && (
-            <button
-              className="icon-btn cart"
-              aria-label={`Открыть корзину. Товаров: ${cartCount}`}
-              aria-expanded={cartOpen}
-              aria-controls="drawer-cart"
-              onClick={() => {
-                setCartOpen((v) => !v);
-                if (catsOpen) setCatsOpen(false);
-              }}
-            >
-              <span className="icon-glyph" aria-hidden="true" />
-              <span className="icon-count" aria-hidden="true">
-                <svg
-                  className="icon-count-cart"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M7 4h-2l-1 2h-2v2h2l3.6 7.59-1.35 2.41A2 2 0 0 0 9 20h11v-2h-10.42l1.1-2h6.32a2 2 0 0 0 1.79-1.11l3.58-7.16a1 1 0 0 0-.9-1.42H6.63l-.31-.59A2 2 0 0 0 5 4z" />
-                </svg>
-                {cartCountLabel}
-              </span>
-            </button>
-          )}
-        </div>
       </header>
 
       {(catsOpen || cartOpen) && (
