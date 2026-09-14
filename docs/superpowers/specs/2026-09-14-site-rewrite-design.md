@@ -59,7 +59,7 @@ Dockerfile, compose.yml, .env.example, pyproject.toml + lock
 
 Сервисы compose: `db` (postgres:16, без проброса порта наружу, volume `pgdata`), `web` (gunicorn, `127.0.0.1:8000`).
 Статика — whitenoise. Медиа — volume `media/`, отдаётся Caddy напрямую.
-При старте `web`: `migrate --noinput` → `collectstatic --noinput` → gunicorn. Никаких seed-скриптов при старте.
+`collectstatic` выполняется при сборке образа. При старте `web`: `migrate --noinput` → `createcachetable` → gunicorn. Никаких seed-скриптов при старте.
 
 Зависимости: Django 5.x, psycopg 3, django-environ, gunicorn, whitenoise, Pillow, nh3, django-axes,
 django-prose-editor, PyYAML; dev: pytest, pytest-django, ruff. Версии фиксируются lock-файлом.
@@ -138,7 +138,7 @@ django-prose-editor, PyYAML; dev: pytest, pytest-django, ruff. Версии фи
 
 Slug товара — транслитерация кода модели латиницей в нижнем регистре, точки и запятые → дефис
 (`ТПГ-2Б` → `tpg-2b`, `МГС 700-0.8-Р-1` → `mgs-700-0-8-r-1`). Для товаров без модели — короткое английское
-описание (`pipe-threading-dies`). Все slug товаров фиксируются в `content/catalog.yaml`.
+описание (`pipe-threading-die-heads`). Все slug товаров фиксируются в `content/catalog.yaml`.
 
 ## 6. Корзина и заявка
 
@@ -151,7 +151,7 @@ Slug товара — транслитерация кода модели лат�
 1. Honeypot-поле заполнено → ответ как при успехе, ничего не сохраняется.
 2. Лимит: не более 5 успешных заявок в час с одного IP (Django cache) → ошибка формы «Слишком много заявок».
 3. Валидация: имя 2–100 символов после trim; телефон — цифры после нормализации `8XXXXXXXXXX`/`7XXXXXXXXXX`/
-   `+7XXXXXXXXXX` → `+7XXXXXXXXXX`, иначе ошибка у поля; `items` — валидный JSON, 1–50 позиций,
+   `+7XXXXXXXXXX`, а также 10 цифр, начинающихся с 7, → `+7XXXXXXXXXX`, иначе ошибка у поля; `items` — валидный JSON, 1–50 позиций,
    `qty` целое 1–999; позиции с неизвестными или неактивными `id` отбрасываются; если после этого пусто —
    ошибка «Корзина пуста или товары недоступны». Названия берутся из БД. Одинаковые `id` суммируются.
 4. В одной транзакции создаются `QuoteRequest` и `QuoteItem`.
@@ -179,7 +179,7 @@ Slug товара — транслитерация кода модели лат�
 - JSON-LD: `LocalBusiness` (главная, контакты; только непустые поля), `BreadcrumbList` (категория, товар),
   `Product` (name, image, description, sku = model_code; `offers` с ценой в KZT **только** при `show_price` и `price`).
   Поле `brand` не выводится.
-- `sitemap.xml` с `lastmod`; `robots.txt` со ссылкой на sitemap и `Disallow` для админки и `/quote/`.
+- `sitemap.xml` с `lastmod`; `robots.txt` со ссылкой на sitemap и `Disallow: /quote/` (адрес админки в robots.txt не указывается, чтобы не раскрывать его).
 - Open Graph (title, description, image).
 - Производительность: WebP, `width/height` у изображений, `loading="lazy"` ниже первого экрана, один CSS и один JS,
   без внешних шрифтов (системный шрифт). Цель — Lighthouse Performance и SEO ≥ 90 на мобильном для страницы товара.
