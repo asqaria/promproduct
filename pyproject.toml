@@ -33,7 +33,6 @@ python_files = ["test_*.py"]
 addopts = "-q"
 filterwarnings = [
     "ignore:No directory at:UserWarning",
-    "ignore:Extension 'Table' typically requires:UserWarning",
 ]
 
 [tool.ruff]

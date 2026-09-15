@@ -12,6 +12,9 @@ EDITOR_EXTENSIONS = {
     "ListItem": True,
     "Link": {"protocols": ["http", "https", "tel", "mailto"]},
     "Table": True,
+    "TableRow": True,
+    "TableHeader": True,
+    "TableCell": True,
     "HardBreak": True,
 }
 
