@@ -1,7 +1,9 @@
 from itertools import groupby
 from urllib.parse import quote as urlquote
 
+from django.conf import settings
 from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET
 
@@ -139,3 +141,14 @@ def contacts(request):
         "local_business": seo.local_business_ld(site),
     }
     return render(request, "catalog/contacts.html", context)
+
+
+@require_GET
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Disallow: /quote/",
+        "",
+        f"Sitemap: {settings.SITE_URL}/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines) + "\n", content_type="text/plain; charset=utf-8")
