@@ -1,0 +1,99 @@
+import json
+from datetime import datetime
+from io import StringIO
+from zoneinfo import ZoneInfo
+
+import pytest
+import yaml
+from django.core.management import CommandError, call_command
+
+from orders.models import QuoteRequest
+from tests.factories import make_product
+
+pytestmark = pytest.mark.django_db
+
+
+def copy_escape(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n")
+
+
+@pytest.fixture
+def files(tmp_path):
+    items = [
+        {"id": 10, "name": "Трубогиб ручной гидравлический ИНСТАН ТПГ-2Б", "price": 86300.0},
+        {"id": 10, "name": "Трубогиб ручной гидравлический ИНСТАН ТПГ-2Б", "price": 86300.0},
+        {"id": 999, "name": "Снятый товар", "price": 0.0},
+    ]
+    rows = [
+        ["7", "Иван\\Петров", "8 777 305 42 43", json.dumps(items, ensure_ascii=False)],
+        ["8", "Без телефона", "12", "[]"],
+    ]
+    dump = "\n".join(
+        [
+            "SET statement_timeout = 0;",
+            "COPY public.request (id, customer_name, customer_phone, product_list) FROM stdin;",
+            *["\t".join(copy_escape(v) for v in row) for row in rows],
+            "\\.",
+            "",
+        ]
+    )
+    dump_path = tmp_path / "request.sql"
+    dump_path.write_text(dump, encoding="utf-8")
+    content_path = tmp_path / "catalog.yaml"
+    content_yaml = {
+        "categories": [],
+        "products": [{"slug": "tpg-2b", "legacy_ids": [10]}],
+    }
+    content_path.write_text(
+        yaml.safe_dump(content_yaml, allow_unicode=True),
+        encoding="utf-8",
+    )
+    return {"dump": dump_path, "content": content_path}
+
+
+def run(files) -> str:
+    out = StringIO()
+    call_command(
+        "import_legacy_requests",
+        str(files["dump"]),
+        date="2025-06-01",
+        content=str(files["content"]),
+        stdout=out,
+    )
+    return out.getvalue()
+
+
+def test_imports_requests_as_closed_with_grouped_items(files):
+    product = make_product(slug="tpg-2b")
+    output = run(files)
+
+    quote = QuoteRequest.objects.get(admin_note__startswith="legacy:7 ")
+    assert quote.name == "Иван\\Петров"
+    assert quote.phone == "+77773054243"
+    assert quote.status == QuoteRequest.Status.CLOSED
+    assert quote.email_sent is True
+    assert quote.created_at == datetime(2025, 6, 1, 0, 0, 7, tzinfo=ZoneInfo("Asia/Almaty"))
+    items = [(i.product_id, i.product_name, i.quantity) for i in quote.items.all()]
+    assert items == [
+        (product.pk, "Трубогиб ручной гидравлический ИНСТАН ТПГ-2Б", 2),
+        (None, "Снятый товар", 1),
+    ]
+    assert "Импортировано: 2" in output
+
+
+def test_unparseable_phone_kept_as_is(files):
+    run(files)
+    assert QuoteRequest.objects.get(admin_note__startswith="legacy:8 ").phone == "12"
+
+
+def test_second_run_skips_existing(files):
+    run(files)
+    output = run(files)
+    assert QuoteRequest.objects.count() == 2
+    assert "Пропущено (уже импортированы): 2" in output
+
+
+def test_missing_copy_block_is_error(files):
+    files["dump"].write_text("SELECT 1;\n", encoding="utf-8")
+    with pytest.raises(CommandError, match="COPY"):
+        run(files)
