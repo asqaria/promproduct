@@ -7,112 +7,254 @@
   <link rel="stylesheet" href="../../static/css/site.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="container site-header__inner">
+  <a class="skip-link" href="#main">Перейти к содержимому</a>
+
+  <header class="topbar">
+    <div class="container container--wide topbar__inner">
       <a class="logo" href="#">Батыс Курылыс <span>XXI</span></a>
-      <nav class="nav" aria-label="Основное меню"><a href="#">Каталог</a><a href="#">Контакты</a></nav>
-      <a class="cart-link" href="#quote">Запрос <span class="cart-count">2</span></a>
+      <div class="topbar__contact">
+        <a href="tel:+77773054243">+7 777 305 4243</a>
+        <a class="btn btn--whatsapp" href="#">WhatsApp</a>
+      </div>
     </div>
   </header>
 
-  <main class="container">
-    <p class="note">Макет 1 из 2 — главная страница</p>
-    <section class="hero">
-      <h1>Гидравлический и трубный инструмент в Астане</h1>
-      <p class="hero__text">Трубогибы, прессы, домкраты, маслостанции, съёмники подшипников и шинообрабатывающее оборудование. Подберём модель под задачу и подготовим коммерческое предложение.</p>
-      <div class="hero__actions"><a class="btn btn--primary" href="#">Перейти в каталог</a><a class="btn btn--ghost" href="#">Написать в WhatsApp</a></div>
-    </section>
-
-    <section class="section">
-      <div class="section__head"><h2>Категории</h2><a href="#">Весь каталог</a></div>
-      <div class="category-grid">
-        <a class="category-card" href="#"><span class="category-card__name">Трубогибы</span><span class="category-card__count">10 товаров</span></a>
-        <a class="category-card" href="#"><span class="category-card__name">Съёмники подшипников гидравлические</span><span class="category-card__count">12 товаров</span></a>
-        <a class="category-card" href="#"><span class="category-card__name">Маслостанции</span><span class="category-card__count">6 товаров</span></a>
-        <a class="category-card" href="#"><span class="category-card__name">Домкраты</span><span class="category-card__count">2 товара</span></a>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section__head"><h2>Популярные товары</h2></div>
-      <div class="product-grid">
-        <a class="product-card" href="#product">
-          <div class="product-card__image"><span class="product-card__placeholder">Фото</span></div>
-          <div class="product-card__body"><span class="product-card__name">Трубогиб ручной гидравлический ТПГ-2Б</span><span class="product-card__model">ТПГ-2Б</span><span class="product-card__price price-on-request">Цена по запросу</span></div>
-        </a>
-        <a class="product-card" href="#product">
-          <div class="product-card__image"><span class="product-card__placeholder">Фото</span></div>
-          <div class="product-card__body"><span class="product-card__name">Маслостанция МГС 700-0.8-Р-1</span><span class="product-card__model">МГС 700-0.8-Р-1</span><span class="product-card__price">150 000 ₸</span></div>
-        </a>
-        <a class="product-card" href="#product">
-          <div class="product-card__image"><span class="product-card__placeholder">Фото</span></div>
-          <div class="product-card__body"><span class="product-card__name">Гидравлический съёмник подшипников СГ-50</span><span class="product-card__model">СГ-50</span><span class="product-card__price price-on-request">Цена по запросу</span></div>
-        </a>
-      </div>
-    </section>
-
-    <section class="section">
-      <ul class="features">
-        <li><strong>Подбор модели</strong>Поможем выбрать инструмент под ваши трубы, нагрузки и условия работы.</li>
-        <li><strong>Коммерческое предложение</strong>Соберите список в запросе — пришлём цены и сроки.</li>
-        <li><strong>Поставка по Казахстану</strong>Организуем поставку в ваш город.</li>
-      </ul>
-    </section>
-
-    <hr id="product">
-    <p class="note">Макет 2 из 2 — карточка товара</p>
-    <nav class="breadcrumbs" aria-label="Навигация"><ol><li><a href="#">Главная</a></li><li><a href="#">Каталог</a></li><li><a href="#">Трубогибы</a></li><li><span aria-current="page">ТПГ-2Б</span></li></ol></nav>
-    <article class="product">
-      <div class="product__gallery">
-        <div class="product__main-image"><span class="product-card__placeholder">Главное фото</span></div>
-        <div class="product__thumbs"><button type="button" aria-current="true">1</button><button type="button">2</button><button type="button">3</button></div>
-      </div>
-      <div class="product__info">
-        <h1>Трубогиб ручной гидравлический ТПГ-2Б</h1>
-        <p class="product__model">Модель: ТПГ-2Б</p>
-        <p class="product__short">Переносной гидравлический трубогиб для водогазопроводных труб до 2".</p>
-        <p class="product__price price-on-request">Цена по запросу</p>
-        <div class="product__actions">
-          <div class="qty"><label class="visually-hidden" for="qty">Количество</label><input id="qty" type="number" min="1" max="999" value="1"></div>
-          <button type="button" class="btn btn--primary">Добавить в запрос</button>
-          <a class="btn btn--whatsapp" href="#">Спросить в WhatsApp</a>
-        </div>
-        <p class="note">Добавьте товары в запрос — мы свяжемся с вами и пришлём коммерческое предложение.</p>
-      </div>
-    </article>
-    <section class="panel">
-      <h2>Характеристики</h2>
-      <table class="specs"><tbody>
-        <tr><th scope="row">Наибольшее усилие гидроцилиндра, тс</th><td>10</td></tr>
-        <tr><th scope="row">Наибольший ход штока, мм</th><td>180</td></tr>
-        <tr><th scope="row">Масса, кг</th><td>54</td></tr>
-      </tbody></table>
-    </section>
-    <section class="panel prose">
-      <h2>Описание</h2>
-      <p>Текст описания товара: назначение, особенности, применение и комплектация.</p>
-    </section>
-
-    <hr id="quote">
-    <p class="note">Бонус — страница запроса</p>
-    <div class="quote-layout">
-      <ul class="quote-list">
-        <li class="quote-item"><span class="product-card__placeholder">Фото</span><a class="quote-item__name" href="#">Трубогиб ручной гидравлический ТПГ-2Б</a><div class="qty"><input type="number" value="1" aria-label="Количество"></div><button class="quote-item__remove" type="button" aria-label="Удалить">×</button></li>
-      </ul>
-      <form class="form panel">
-        <div class="form__row"><label for="name">Имя</label><input id="name" type="text"></div>
-        <div class="form__row"><label for="phone">Телефон</label><input id="phone" type="tel" placeholder="+7 777 305 4243"><p class="form__error">Укажите телефон в формате +7 XXX XXX XX XX.</p></div>
-        <button class="btn btn--primary" type="button">Отправить запрос</button>
-      </form>
+  <div class="mobile-bar">
+    <div class="container container--wide mobile-bar__inner">
+      <button type="button" class="btn btn--ghost categories-toggle" aria-expanded="false" aria-controls="catalog-menu">Категории</button>
+      <a class="cart-link" href="#quote-panel">Запрос <span class="cart-count">2</span></a>
     </div>
-  </main>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar" id="catalog-menu">
+      <h2 class="sidebar__title">Категории</h2>
+      <nav class="category-nav" aria-label="Категории каталога">
+        <ul>
+          <li><a href="#" aria-current="page">Все товары</a></li>
+          <li><a href="#">Трубогибы</a></li>
+          <li><a href="#">Опрессовочные насосы</a></li>
+          <li><a href="#">Опрессовщики</a></li>
+          <li><a href="#">Тиски</a></li>
+          <li><a href="#">Труборезы</a></li>
+          <li><a href="#">Прессы гидравлические</a></li>
+          <li><a href="#">Маслостанции</a></li>
+          <li><a href="#">Гидроцилиндры</a></li>
+          <li><a href="#">Съёмники подшипников гидравлические</a></li>
+          <li><a href="#">Домкраты</a></li>
+          <li><a href="#">Шиногибы</a></li>
+          <li><a href="#">Тросорезы</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <div class="drawer-backdrop" hidden aria-hidden="true"></div>
+
+    <main class="content" id="main">
+      <p class="note">Макет 1 из 2 — главная</p>
+      <div class="page-head">
+        <h1>Гидравлический и трубный инструмент в Астане</h1>
+        <p>Трубогибы, прессы, домкраты, маслостанции, съёмники подшипников и шинообрабатывающее оборудование. Подберём модель под задачу и подготовим коммерческое предложение.</p>
+      </div>
+
+      <section class="category-block">
+        <div class="section__head"><h2>Трубогибы</h2><a href="#">Все</a></div>
+        <div class="product-grid">
+          <div class="product-card">
+            <a class="product-card__image" href="#"><span class="product-card__placeholder">Фото</span></a>
+            <div class="product-card__body">
+              <a class="product-card__name" href="#">Трубогиб ручной гидравлический ТПГ-1Б</a>
+              <span class="product-card__model">ТПГ-1Б</span>
+              <span class="product-card__price price-on-request">Цена по запросу</span>
+              <button type="button" class="btn btn--primary product-card__add">В запрос</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <a class="product-card__image" href="#product-detail"><span class="product-card__placeholder">Фото</span></a>
+            <div class="product-card__body">
+              <a class="product-card__name" href="#product-detail">Трубогиб ручной гидравлический ТПГ-2Б</a>
+              <span class="product-card__model">ТПГ-2Б</span>
+              <span class="product-card__price price-on-request">Цена по запросу</span>
+              <button type="button" class="btn btn--primary product-card__add">В запрос</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <a class="product-card__image" href="#"><span class="product-card__placeholder">Фото</span></a>
+            <div class="product-card__body">
+              <a class="product-card__name" href="#">Трубогиб электрогидравлический ТПГ-3ЭП</a>
+              <span class="product-card__model">ТПГ-3ЭП</span>
+              <span class="product-card__price price-on-request">Цена по запросу</span>
+              <button type="button" class="btn btn--primary product-card__add">В запрос</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="category-block">
+        <div class="section__head"><h2>Маслостанции</h2><a href="#">Все</a></div>
+        <div class="product-grid">
+          <div class="product-card">
+            <a class="product-card__image" href="#"><span class="product-card__placeholder">Фото</span></a>
+            <div class="product-card__body">
+              <a class="product-card__name" href="#">Маслостанция МГС 700-0.8-Р-1</a>
+              <span class="product-card__model">МГС 700-0.8-Р-1</span>
+              <span class="product-card__price">150 000 ₸</span>
+              <button type="button" class="btn btn--primary product-card__add">В запрос</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <a class="product-card__image" href="#"><span class="product-card__placeholder">Фото</span></a>
+            <div class="product-card__body">
+              <a class="product-card__name" href="#">Маслостанция МГС 630-0.8П-Р-1</a>
+              <span class="product-card__model">МГС 630-0.8П-Р-1</span>
+              <span class="product-card__price price-on-request">Цена по запросу</span>
+              <button type="button" class="btn btn--primary product-card__add">В запрос</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="category-block">
+        <div class="section__head"><h2>Съёмники подшипников гидравлические</h2><a href="#">Все</a></div>
+        <div class="product-grid">
+          <div class="product-card">
+            <a class="product-card__image" href="#"><span class="product-card__placeholder">Фото</span></a>
+            <div class="product-card__body">
+              <a class="product-card__name" href="#">Гидравлический съёмник подшипников СГ-10</a>
+              <span class="product-card__model">СГ-10</span>
+              <span class="product-card__price price-on-request">Цена по запросу</span>
+              <button type="button" class="btn btn--primary product-card__add">В запрос</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <a class="product-card__image" href="#"><span class="product-card__placeholder">Фото</span></a>
+            <div class="product-card__body">
+              <a class="product-card__name" href="#">Гидравлический съёмник подшипников СГ-50Н</a>
+              <span class="product-card__model">СГ-50Н</span>
+              <span class="product-card__price price-on-request">Цена по запросу</span>
+              <button type="button" class="btn btn--primary product-card__add">В запрос</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr>
+      <p class="note">Макет 2 из 2 — карточка товара</p>
+      <nav class="breadcrumbs" aria-label="Навигация"><ol><li><a href="#">Главная</a></li><li><a href="#">Каталог</a></li><li><a href="#">Трубогибы</a></li><li><span aria-current="page">ТПГ-2Б</span></li></ol></nav>
+      <article class="product" id="product-detail">
+        <div class="product__gallery">
+          <div class="product__main-image"><span class="product-card__placeholder">Главное фото</span></div>
+          <div class="product__thumbs">
+            <button type="button" aria-current="true" aria-label="Фото 1">1</button>
+            <button type="button" aria-label="Фото 2">2</button>
+            <button type="button" aria-label="Фото 3">3</button>
+          </div>
+        </div>
+        <div class="product__info">
+          <h1>Трубогиб ручной гидравлический ТПГ-2Б</h1>
+          <p class="product__model">Модель: ТПГ-2Б</p>
+          <p class="product__short">Переносной гидравлический трубогиб для водогазопроводных труб до 2".</p>
+          <p class="product__price price-on-request">Цена по запросу</p>
+          <div class="product__actions">
+            <div class="qty"><label class="visually-hidden" for="qty">Количество</label><input id="qty" type="number" min="1" max="999" value="1"></div>
+            <button type="button" class="btn btn--primary">Добавить в запрос</button>
+            <a class="btn btn--whatsapp" href="#">Спросить в WhatsApp</a>
+          </div>
+          <p class="note">Добавьте товары в запрос — мы свяжемся с вами и пришлём коммерческое предложение.</p>
+        </div>
+      </article>
+      <section class="panel">
+        <h2>Характеристики</h2>
+        <table class="specs"><tbody>
+          <tr><th scope="row">Наибольшее усилие гидроцилиндра, тс</th><td>10</td></tr>
+          <tr><th scope="row">Наибольший ход штока, мм</th><td>180</td></tr>
+          <tr><th scope="row">Масса, кг</th><td>54</td></tr>
+        </tbody></table>
+      </section>
+      <section class="panel prose">
+        <h2>Описание</h2>
+        <p>Текст описания товара: назначение, особенности, применение и комплектация.</p>
+      </section>
+    </main>
+
+    <aside class="side-panel" id="quote-panel">
+      <section class="quote-panel panel">
+        <h2 class="quote-panel__title">Запрос КП</h2>
+        <p class="note">Добавьте товары — мы пришлём цены и сроки.</p>
+        <ul class="quote-list">
+          <li class="quote-item">
+            <a class="quote-item__name" href="#product-detail">Трубогиб ручной гидравлический ТПГ-2Б</a>
+            <div class="quote-item__row">
+              <div class="qty"><input type="number" value="1" min="1" max="999" aria-label="Количество"></div>
+              <button class="quote-item__remove" type="button" aria-label="Удалить из запроса">×</button>
+            </div>
+          </li>
+          <li class="quote-item">
+            <a class="quote-item__name" href="#">Маслостанция МГС 700-0.8-Р-1</a>
+            <div class="quote-item__row">
+              <div class="qty"><input type="number" value="2" min="1" max="999" aria-label="Количество"></div>
+              <button class="quote-item__remove" type="button" aria-label="Удалить из запроса">×</button>
+            </div>
+          </li>
+        </ul>
+        <p class="quote-empty" hidden>В запросе пока нет товаров</p>
+        <form class="form">
+          <div class="form__row"><label for="name">Имя</label><input id="name" type="text"></div>
+          <div class="form__row">
+            <label for="phone">Телефон</label>
+            <input id="phone" type="tel" placeholder="+7 777 305 4243">
+            <p class="form__error">Укажите телефон в формате +7 XXX XXX XX XX.</p>
+          </div>
+          <button class="btn btn--primary" type="button">Отправить запрос</button>
+          <p class="note">Отправляя запрос, вы соглашаетесь на обработку имени и телефона.</p>
+        </form>
+      </section>
+
+      <section class="contacts-panel panel">
+        <h2>Контакты</h2>
+        <p>Казахстан, г. Астана, ул. Керей Жанибек хандар, 50/3</p>
+        <a class="btn btn--whatsapp" href="#">WhatsApp +7 777 305 4243</a>
+        <a class="btn btn--whatsapp" href="#">WhatsApp +7 777 377 3763</a>
+      </section>
+    </aside>
+  </div>
 
   <footer class="site-footer">
-    <div class="container footer-grid">
-      <div><h2>Батыс Курылыс XXI</h2><p>Казахстан, г. Астана, ул. Керей Жанибек хандар, 50/3</p></div>
-      <div><h2>Каталог</h2><ul><li><a href="#">Трубогибы</a></li><li><a href="#">Маслостанции</a></li></ul></div>
-      <div><h2>Связаться</h2><ul><li><a href="#">WhatsApp +7 777 305 4243</a></li><li><a href="#">WhatsApp +7 777 377 3763</a></li></ul></div>
+    <div class="container container--wide footer-grid">
+      <div>
+        <h2>Батыс Курылыс XXI</h2>
+        <p>Казахстан, г. Астана, ул. Керей Жанибек хандар, 50/3</p>
+      </div>
+      <div>
+        <p>© 2026 Батыс Курылыс XXI</p>
+      </div>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      document.querySelectorAll('.categories-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var sidebar = document.getElementById(btn.getAttribute('aria-controls'));
+          var backdrop = document.querySelector('.drawer-backdrop');
+          if (!sidebar) { return; }
+          var open = sidebar.classList.toggle('sidebar--open');
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          if (backdrop) { backdrop.hidden = !open; }
+        });
+      });
+      document.querySelectorAll('.drawer-backdrop').forEach(function (backdrop) {
+        backdrop.addEventListener('click', function () {
+          document.querySelectorAll('.sidebar--open').forEach(function (el) {
+            el.classList.remove('sidebar--open');
+          });
+          document.querySelectorAll('.categories-toggle[aria-expanded="true"]').forEach(function (btn) {
+            btn.setAttribute('aria-expanded', 'false');
+          });
+          backdrop.hidden = true;
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
