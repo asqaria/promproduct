@@ -1,10 +1,13 @@
 import json
 from decimal import Decimal
+from io import BytesIO
 
 import pytest
 from bs4 import BeautifulSoup
+from django.core.files.uploadedfile import SimpleUploadedFile
+from PIL import Image
 
-from catalog.models import Category, Product, ProductSpec
+from catalog.models import Category, Product, ProductImage, ProductSpec
 from tests.factories import make_category, make_product
 
 pytestmark = pytest.mark.django_db
@@ -16,6 +19,12 @@ def soup(response) -> BeautifulSoup:
 
 def ld_objects(response) -> list[dict]:
     return [json.loads(tag.string) for tag in soup(response).find_all("script", type="application/ld+json")]
+
+
+def png_upload(width: int = 100, height: int = 100) -> SimpleUploadedFile:
+    buffer = BytesIO()
+    Image.new("RGB", (width, height), "orange").save(buffer, "PNG")
+    return SimpleUploadedFile("photo.png", buffer.getvalue(), content_type="image/png")
 
 
 @pytest.fixture
@@ -74,6 +83,19 @@ def test_home_groups_products_by_category_in_sort_order(client, catalog_data):
     assert [a.get_text() for a in blocks[1].select(".product-card__name")] == ["Трубогиб ТПГ-2Б"]
     assert blocks[1].select_one(".section__head a")["href"] == "/catalog/pipe-benders/"
     assert any(obj["@type"] == "LocalBusiness" for obj in ld_objects(response))
+
+
+def test_home_loads_only_first_category_block_images_eagerly(client, catalog_data):
+    jacks = make_category(name="Домкраты", slug="jacks", sort_order=5)
+    first_product = make_product(category=jacks, name="Домкрат ДА5", slug="da-5")
+    ProductImage.objects.create(product=first_product, image=png_upload())
+    ProductImage.objects.create(product=catalog_data["product"], image=png_upload())
+
+    page = soup(client.get("/"))
+    blocks = page.select("section.category-block")
+    assert [b.select_one("h2").get_text() for b in blocks] == ["Домкраты", "Трубогибы"]
+    assert blocks[0].select_one(".product-card__image img").has_attr("loading") is False
+    assert blocks[1].select_one(".product-card__image img")["loading"] == "lazy"
 
 
 def test_product_card_hooks(client, catalog_data):

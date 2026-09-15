@@ -2,7 +2,7 @@
 <div class="product-card" data-product data-id="{{ product.pk }}" data-name="{{ product.name }}" data-url="{{ product.get_absolute_url }}" data-thumb="{% if image %}{{ image.thumbnail.url }}{% endif %}">
   <a class="product-card__image" href="{{ product.get_absolute_url }}" tabindex="-1" aria-hidden="true">
     {% if image %}
-      <img src="{{ image.thumbnail.url }}" alt="{{ image.alt }}" width="400" height="300" loading="lazy">
+      <img src="{{ image.thumbnail.url }}" alt="{{ image.alt }}" width="400" height="300"{% if not eager %} loading="lazy"{% endif %}>
     {% else %}
       <span class="product-card__placeholder">Нет фото</span>
     {% endif %}

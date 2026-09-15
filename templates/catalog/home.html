@@ -10,7 +10,7 @@
     <section class="category-block">
       <div class="section__head"><h2>{{ block.category.name }}</h2><a href="{{ block.category.get_absolute_url }}">Все</a></div>
       <div class="product-grid">
-        {% for product in block.products %}{% include "includes/product_card.html" %}{% endfor %}
+        {% for product in block.products %}{% include "includes/product_card.html" with eager=forloop.parentloop.first %}{% endfor %}
       </div>
     </section>
   {% empty %}
