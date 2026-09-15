@@ -3,4 +3,32 @@
   <p class="note">Добавьте товары — мы пришлём цены и сроки.</p>
   <ul class="quote-list" data-quote-list></ul>
   <p class="quote-empty" data-quote-empty>В запросе пока нет товаров</p>
+  <noscript><p class="notice notice--error">Для работы списка включите JavaScript или напишите нам в WhatsApp.</p></noscript>
+
+  <form method="post" action="/quote/" class="form" data-quote-form novalidate>
+    {% csrf_token %}
+    {% if quote_form.non_field_errors or quote_form.items.errors %}
+      <div class="notice notice--error" role="alert">
+        {% for error in quote_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        {% for error in quote_form.items.errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    <div class="form__row">
+      <label for="{{ quote_form.name.id_for_label }}">Имя</label>
+      {{ quote_form.name }}
+      {% for error in quote_form.name.errors %}<p class="form__error">{{ error }}</p>{% endfor %}
+    </div>
+    <div class="form__row">
+      <label for="{{ quote_form.phone.id_for_label }}">Телефон</label>
+      {{ quote_form.phone }}
+      {% for error in quote_form.phone.errors %}<p class="form__error">{{ error }}</p>{% endfor %}
+    </div>
+    <div class="form__hp" aria-hidden="true">
+      <label for="{{ quote_form.website.id_for_label }}">Сайт</label>
+      {{ quote_form.website }}
+    </div>
+    {{ quote_form.items }}
+    <button type="submit" class="btn btn--primary" data-quote-submit>Отправить запрос</button>
+    <p class="note">Отправляя запрос, вы соглашаетесь на обработку имени и телефона.</p>
+  </form>
 </section>

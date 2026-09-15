@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block robots %}noindex, follow{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Запрос коммерческого предложения</h1>
+    <p>Проверьте список товаров и оставьте имя и телефон в форме «Запрос КП» — мы свяжемся с вами и пришлём цены и сроки поставки.</p>
+  </div>
+  {% if quote_form.errors %}
+    <p class="notice notice--error" role="alert">Заявка не отправлена — проверьте поля в форме «Запрос КП».</p>
+  {% endif %}
+  <p><a class="btn btn--ghost" href="/">Вернуться к каталогу</a></p>
+{% endblock %}

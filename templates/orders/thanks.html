@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block robots %}noindex, follow{% endblock %}
+{% block content %}
+  <div data-cart-clear hidden></div>
+  <section class="panel">
+    <h1>Спасибо! Запрос отправлен</h1>
+    {% if quote_id %}<p>Номер вашей заявки: <strong>№{{ quote_id }}</strong>.</p>{% endif %}
+    <p>Мы свяжемся с вами по указанному телефону.</p>
+    {% with wa=site.whatsapp_list.0 %}
+      {% if wa %}<p>Срочный вопрос? <a class="btn btn--whatsapp" href="https://wa.me/{{ wa.wa }}" target="_blank" rel="noopener">Написать в WhatsApp</a></p>{% endif %}
+    {% endwith %}
+    <p><a href="/">Вернуться к каталогу</a></p>
+  </section>
+{% endblock %}
