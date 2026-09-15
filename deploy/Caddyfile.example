@@ -1,0 +1,31 @@
+# Общий блок нового сайта. Путь к media — каталог проекта на сервере.
+(promproduct_app) {
+	encode zstd gzip
+	handle_path /media/* {
+		root * /opt/promproduct/media
+		file_server
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8001
+	}
+}
+
+# ЭТАП 1 — стенд. Хеш пароля: caddy hash-password --plaintext 'пароль'
+new.prom-products.kz {
+	basic_auth {
+		preview ВСТАВИТЬ_ХЕШ_ИЗ_caddy_hash-password
+	}
+	header X-Robots-Tag "noindex, nofollow"
+	import promproduct_app
+}
+
+# ЭТАП 2 — после переключения: заменить блок стенда и старый блок prom-products.kz на эти три
+# prom-products.kz {
+# 	import promproduct_app
+# }
+# www.prom-products.kz {
+# 	redir https://prom-products.kz{uri} permanent
+# }
+# new.prom-products.kz {
+# 	redir https://prom-products.kz{uri} permanent
+# }
