@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load seo_tags %}
+{% block og_image %}{% if images %}<meta property="og:image" content="{{ site_url }}{{ images.0.image.url }}">{% endif %}{% endblock %}
+{% block structured_data %}{% ld_json product_ld %}{% ld_json breadcrumbs_ld %}{% endblock %}
+{% block content %}
+  {% include "includes/breadcrumbs.html" %}
+  <article class="product">
+    <div class="product__gallery">
+      <div class="product__main-image">
+        {% if images %}
+          <img src="{{ images.0.image.url }}" alt="{{ images.0.alt }}" width="800" height="600" fetchpriority="high" data-gallery-main>
+        {% else %}
+          <span class="product-card__placeholder">Нет фото</span>
+        {% endif %}
+      </div>
+      {% if images|length > 1 %}
+        <div class="product__thumbs">
+          {% for image in images %}
+            <button type="button" data-gallery-thumb data-full="{{ image.image.url }}" data-alt="{{ image.alt }}" aria-label="Фото {{ forloop.counter }}"{% if forloop.first %} aria-current="true"{% endif %}>
+              <img src="{{ image.thumbnail.url }}" alt="" width="64" height="64" loading="lazy">
+            </button>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="product__info">
+      <h1>{{ product.name }}</h1>
+      {% if product.model_code %}<p class="product__model">Модель: {{ product.model_code }}</p>{% endif %}
+      {% if product.short_description %}<p class="product__short">{{ product.short_description }}</p>{% endif %}
+      {% if product.displayed_price is not None %}
+        <p class="product__price">{{ product.displayed_price|floatformat:"0g" }} ₸</p>
+      {% else %}
+        <p class="product__price price-on-request">Цена по запросу</p>
+      {% endif %}
+      <div class="product__actions" data-product data-id="{{ product.pk }}" data-name="{{ product.name }}" data-url="{{ product.get_absolute_url }}" data-thumb="{% if images %}{{ images.0.thumbnail.url }}{% endif %}">
+        <div class="qty">
+          <label class="visually-hidden" for="qty-{{ product.pk }}">Количество</label>
+          <input id="qty-{{ product.pk }}" type="number" inputmode="numeric" min="1" max="999" value="1" data-qty>
+        </div>
+        <button type="button" class="btn btn--primary" data-add-to-quote>Добавить в запрос</button>
+        {% if whatsapp_url %}<a class="btn btn--whatsapp" href="{{ whatsapp_url }}" target="_blank" rel="noopener">Спросить в WhatsApp</a>{% endif %}
+      </div>
+      <p class="note">Добавьте товары в запрос — мы свяжемся с вами и пришлём коммерческое предложение.</p>
+    </div>
+  </article>
+
+  {% if specs %}
+    <section class="panel">
+      <h2>Характеристики</h2>
+      <table class="specs">
+        <tbody>
+          {% for spec in specs %}<tr><th scope="row">{{ spec.name }}</th><td>{{ spec.value }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+
+  {% if product.description %}
+    <section class="panel prose">
+      <h2>Описание</h2>
+      {{ product.description|safe }}
+    </section>
+  {% endif %}
+
+  {% if related %}
+    <section class="section">
+      <div class="section__head"><h2>Похожие товары</h2></div>
+      <div class="product-grid">
+        {% for product in related %}{% include "includes/product_card.html" %}{% endfor %}
+      </div>
+    </section>
+  {% endif %}
+{% endblock %}

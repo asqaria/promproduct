@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load seo_tags %}
+{% block structured_data %}{% ld_json local_business %}{% ld_json breadcrumbs_ld %}{% endblock %}
+{% block content %}
+  {% include "includes/breadcrumbs.html" %}
+  <div class="page-head"><h1>Контакты</h1></div>
+  <section class="panel">
+    <ul class="contacts-list">
+      {% if site.address %}<li><strong>Адрес</strong>{{ site.address }}{% if site.map_url %} · <a href="{{ site.map_url }}" target="_blank" rel="noopener">на карте</a>{% endif %}</li>{% endif %}
+      {% for phone in site.phone_list %}<li><strong>Телефон</strong><a href="tel:{{ phone|cut:' ' }}">{{ phone }}</a></li>{% endfor %}
+      {% for wa in site.whatsapp_list %}<li><strong>WhatsApp</strong><a href="https://wa.me/{{ wa.wa }}" target="_blank" rel="noopener">{{ wa.display }}</a></li>{% endfor %}
+      {% if site.public_email %}<li><strong>Email</strong><a href="mailto:{{ site.public_email }}">{{ site.public_email }}</a></li>{% endif %}
+      {% if site.working_hours %}<li><strong>Часы работы</strong>{{ site.working_hours }}</li>{% endif %}
+      {% if site.bin %}<li><strong>БИН</strong>{{ site.bin }}</li>{% endif %}
+    </ul>
+  </section>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% load static %}<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ page_title|default:site.company_name }}{% endblock %}</title>
+  <meta name="description" content="{{ page_description|default:'' }}">
+  <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+  <link rel="canonical" href="{% block canonical %}{{ site_url }}{{ request.path }}{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ site.company_name }}">
+  <meta property="og:title" content="{{ page_title|default:site.company_name }}">
+  <meta property="og:description" content="{{ page_description|default:'' }}">
+  <meta property="og:url" content="{{ site_url }}{{ request.path }}">
+  {% block og_image %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  {% block structured_data %}{% endblock %}
+  <script src="{% static 'js/cart.js' %}" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти к содержимому</a>
+
+  <header class="topbar">
+    <div class="container container--wide topbar__inner">
+      <a class="logo" href="/">{{ site.company_name }}</a>
+      <div class="topbar__contact">
+        {% with phone=site.phone_list.0 wa=site.whatsapp_list.0 %}
+          {% if phone %}
+            <a href="tel:{{ phone|cut:' ' }}">{{ phone }}</a>
+          {% elif wa %}
+            <a href="tel:+{{ wa.wa }}">{{ wa.display }}</a>
+          {% endif %}
+          {% if wa %}<a class="btn btn--whatsapp" href="https://wa.me/{{ wa.wa }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </header>
+
+  <div class="mobile-bar">
+    <div class="container container--wide mobile-bar__inner">
+      <button type="button" class="btn btn--ghost categories-toggle" aria-expanded="false" aria-controls="catalog-menu" data-drawer-toggle>Категории</button>
+      <a class="cart-link" href="#quote-panel">Запрос <span class="cart-count" data-cart-count hidden>0</span></a>
+    </div>
+  </div>
+
+  <div class="layout">
+    {% include "includes/sidebar.html" %}
+    <div class="drawer-backdrop" hidden aria-hidden="true" data-drawer-backdrop></div>
+    <main class="content" id="main">
+      {% block content %}{% endblock %}
+    </main>
+    {% include "includes/side_panel.html" %}
+  </div>
+
+  <footer class="site-footer">
+    <div class="container container--wide footer-grid">
+      <div>
+        <h2>{{ site.company_name }}</h2>
+        {% if site.address %}<p>{{ site.address }}</p>{% endif %}
+        {% if site.bin %}<p>БИН {{ site.bin }}</p>{% endif %}
+      </div>
+      <div>
+        <p>© {% now "Y" %} {{ site.company_name }}</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

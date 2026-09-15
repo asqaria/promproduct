@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Страница не найдена — {{ site.company_name }}{% endblock %}
+{% block robots %}noindex, follow{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Страница не найдена</h1>
+    <p>Возможно, товар переименован или снят с продажи. Выберите категорию слева.</p>
+  </div>
+  <p><a class="btn btn--primary" href="/">Перейти к каталогу</a></p>
+{% endblock %}

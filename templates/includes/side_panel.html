@@ -1,0 +1,11 @@
+<aside class="side-panel" id="quote-panel">
+  {% include "includes/quote_panel.html" %}
+  <section class="contacts-panel panel">
+    <h2>Контакты</h2>
+    {% if site.address %}<p>{{ site.address }}{% if site.map_url %} · <a href="{{ site.map_url }}" target="_blank" rel="noopener">на карте</a>{% endif %}</p>{% endif %}
+    {% for phone in site.phone_list %}<p><a href="tel:{{ phone|cut:' ' }}">{{ phone }}</a></p>{% endfor %}
+    {% for wa in site.whatsapp_list %}<a class="btn btn--whatsapp" href="https://wa.me/{{ wa.wa }}" target="_blank" rel="noopener">WhatsApp {{ wa.display }}</a>{% endfor %}
+    {% if site.public_email %}<p><a href="mailto:{{ site.public_email }}">{{ site.public_email }}</a></p>{% endif %}
+    {% if site.working_hours %}<p class="note">{{ site.working_hours }}</p>{% endif %}
+  </section>
+</aside>

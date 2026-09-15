@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load seo_tags %}
+{% block structured_data %}{% ld_json local_business %}{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Гидравлический и трубный инструмент в Астане</h1>
+    <p>Трубогибы, прессы, домкраты, маслостанции, съёмники подшипников и шинообрабатывающее оборудование. Подберём модель под задачу и подготовим коммерческое предложение.</p>
+  </div>
+  {% for block in category_blocks %}
+    <section class="category-block">
+      <div class="section__head"><h2>{{ block.category.name }}</h2><a href="{{ block.category.get_absolute_url }}">Все</a></div>
+      <div class="product-grid">
+        {% for product in block.products %}{% include "includes/product_card.html" %}{% endfor %}
+      </div>
+    </section>
+  {% empty %}
+    <p class="quote-empty">Каталог скоро появится.</p>
+  {% endfor %}
+{% endblock %}
