@@ -31,6 +31,9 @@ DJANGO_SETTINGS_MODULE = "config.settings"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-q"
+filterwarnings = [
+    "ignore:No directory at:UserWarning",
+]
 
 [tool.ruff]
 line-length = 110
