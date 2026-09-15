@@ -26,7 +26,7 @@ sudo mkdir -p /opt/promproduct && sudo chown "$USER" /opt/promproduct
 git clone <адрес репозитория: git remote get-url origin на рабочем компьютере> /opt/promproduct
 cd /opt/promproduct
 git checkout rewrite
-cp .env.example .env
+cp deploy/.env.production.example .env
 mkdir -p media && sudo chown 1000:1000 media
 ```
 
@@ -37,26 +37,15 @@ openssl rand -hex 24                             # POSTGRES_PASSWORD
 openssl rand -hex 6                              # суффикс адреса админки
 ```
 
-Заполнить `.env`:
-```dotenv
-DEBUG=False
-SECRET_KEY=<первая строка>
-ALLOWED_HOSTS=prom-products.kz,new.prom-products.kz
-CSRF_TRUSTED_ORIGINS=https://prom-products.kz,https://new.prom-products.kz
-SITE_URL=https://new.prom-products.kz
-ADMIN_URL=panel-<суффикс>/
-POSTGRES_DB=promproduct
-POSTGRES_USER=promproduct
-POSTGRES_PASSWORD=<вторая строка>
-DATABASE_URL=postgres://promproduct:<вторая строка>@db:5432/promproduct
-CACHE_BACKEND=django.core.cache.backends.db.DatabaseCache
-CACHE_LOCATION=django_cache
-EMAIL_URL=submission://<логин>%40gmail.com:<новый пароль приложения без пробелов>@smtp.gmail.com:587
-DEFAULT_FROM_EMAIL=<логин>@gmail.com
-ADMIN_EMAIL=<почта для заявок>
-MEDIA_ROOT=/app/media
-WEB_PORT=8001
-```
+Заполнить в `.env` (`deploy/.env.production.example` уже содержит продакшн-безопасные значения по умолчанию —
+`DEBUG=False`, `CACHE_BACKEND` на `DatabaseCache` и т. д. — заполнить нужно только отмеченные комментариями строки):
+
+- `SECRET_KEY` — первая сгенерированная строка.
+- `ADMIN_URL` — `panel-<суффикс>/`, где `<суффикс>` — третья сгенерированная строка.
+- `POSTGRES_PASSWORD` и пароль внутри `DATABASE_URL` — вторая сгенерированная строка (оба места одинаковые).
+- `EMAIL_URL`, `DEFAULT_FROM_EMAIL`, `ADMIN_EMAIL` — логин и новый пароль приложения Gmail (без пробелов, `@` → `%40`), почта для приёма заявок.
+- `SITE_URL` — на время стенда оставить `https://new.prom-products.kz`; поменять на `https://prom-products.kz` при переключении домена (§5).
+
 Адрес админки (`ADMIN_URL`) никому не публиковать.
 
 ## 2. Запуск стенда
@@ -142,7 +131,12 @@ caddy hash-password --plaintext '<пароль для просмотра>'
    ```
 5. Остановить старые контейнеры (не удалять): `docker stop promproduct-app frontend postgresql-db`.
 
-**Откат (в течение 7 дней):** вернуть Caddyfile из копии `Caddyfile.bak-…` (`sudo cp` обратно в `/etc/caddy/Caddyfile` или в смонтированный файл для контейнера), `docker start postgresql-db promproduct-app frontend`, применить конфиг (`sudo systemctl reload caddy` для службы или `docker exec caddy caddy reload --config /etc/caddy/Caddyfile` для контейнера).
+**Откат (в течение 7 дней):** вернуть Caddyfile из копии `Caddyfile.bak-…` (`sudo cp` обратно в `/etc/caddy/Caddyfile` или в смонтированный файл для контейнера), `docker start postgresql-db promproduct-app frontend`, применить конфиг (`sudo systemctl reload caddy` для службы или `docker exec caddy caddy reload --config /etc/caddy/Caddyfile` для контейнера). Затем вернуть в `.env` `SITE_URL=https://new.prom-products.kz` и пересоздать `web`, чтобы стек снова был согласован с тем, что доступен только на стенд-домене:
+```sh
+cd /opt/promproduct
+sed -i 's#^SITE_URL=.*#SITE_URL=https://new.prom-products.kz#' .env
+docker compose up -d
+```
 
 Через 7 дней без проблем: `docker rm promproduct-app frontend postgresql-db` (volume старой БД оставить ещё на месяц).
 
@@ -167,9 +161,9 @@ sudo tar -xzf /var/backups/promproduct/media-<дата>.tar.gz -C /opt/promprodu
 ```sh
 cd /opt/promproduct && git pull && docker compose up -d --build
 ```
-**Не запускать `import_catalog` после запуска сайта** без необходимости: команда перезаписывает тексты и фото товаров из `content/catalog.yaml` (цены сохраняются), правки из админки будут потеряны.
+**Не запускать `import_catalog` после запуска сайта** без необходимости: команда перезаписывает тексты товаров из `content/catalog.yaml` (цены сохраняются). По умолчанию фото и характеристики товара пересоздаются из YAML, только если в `catalog.yaml` для него указан непустой список `images`/`specs`; для товара с пустым списком (или без ключа) то, что уже есть в БД — включая фото, добавленные через админку — остаётся нетронутым. Флаг `--replace-all` возвращает старое поведение: фото и характеристики пересоздаются всегда, даже когда в YAML для товара их нет, — используйте его только при полной перезаливке каталога.
 
-15 товаров сейчас без фото — их можно дозаполнить через админку в любой момент, это не требует `import_catalog` и не блокирует запуск.
+15 товаров сейчас без фото — их можно дозаполнить через админку в любой момент, это не требует `import_catalog` и не блокирует запуск; обычный (без `--replace-all`) повторный запуск `import_catalog` эти фото не сотрёт.
 
 ## 8. После запуска (SEO-чек-лист)
 

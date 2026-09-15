@@ -3,6 +3,7 @@ from io import BytesIO, StringIO
 
 import pytest
 import yaml
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import CommandError, call_command
 from PIL import Image
 
@@ -102,3 +103,63 @@ def test_unknown_category_fails_without_changes(content):
     with pytest.raises(CommandError, match="nope"):
         run(content)
     assert Category.objects.count() == 0
+
+
+def _make_uploaded_image():
+    buffer = BytesIO()
+    Image.new("RGB", (400, 300), "blue").save(buffer, "WEBP")
+    return SimpleUploadedFile("admin-upload.webp", buffer.getvalue(), content_type="image/webp")
+
+
+def test_reimport_without_images_keeps_admin_uploaded_photo(content, media_root):
+    run(content)
+    product = Product.objects.get(slug="tpg-2b")
+    ProductImage.objects.create(product=product, image=_make_uploaded_image(), alt="Загружено вручную")
+    assert product.images.count() == 2
+
+    content["data"]["products"][0]["images"] = []
+    content["path"].write_text(yaml.safe_dump(content["data"], allow_unicode=True), encoding="utf-8")
+    output = run(content)
+
+    product.refresh_from_db()
+    assert product.images.count() == 2
+    assert product.images.filter(alt="Загружено вручную").exists()
+    assert "Товаров с фото, оставленными как в БД (в YAML не указаны): 1" in output
+
+
+def test_reimport_without_specs_keeps_existing_specs(content, media_root):
+    run(content)
+    product = Product.objects.get(slug="tpg-2b")
+    assert product.specs.count() == 2
+
+    content["data"]["products"][0]["specs"] = []
+    content["path"].write_text(yaml.safe_dump(content["data"], allow_unicode=True), encoding="utf-8")
+    output = run(content)
+
+    assert product.specs.count() == 2
+    assert "Товаров с характеристиками, оставленными как в БД (в YAML не указаны): 1" in output
+
+
+def test_replace_all_flag_restores_old_behaviour(content, media_root):
+    run(content)
+    product = Product.objects.get(slug="tpg-2b")
+    ProductImage.objects.create(product=product, image=_make_uploaded_image(), alt="Загружено вручную")
+    assert product.images.count() == 2
+    assert product.specs.count() == 2
+
+    content["data"]["products"][0]["images"] = []
+    content["data"]["products"][0]["specs"] = []
+    content["path"].write_text(yaml.safe_dump(content["data"], allow_unicode=True), encoding="utf-8")
+
+    out = StringIO()
+    call_command(
+        "import_catalog",
+        content=str(content["path"]),
+        images_dir=str(content["images_dir"]),
+        replace_all=True,
+        stdout=out,
+    )
+
+    product.refresh_from_db()
+    assert product.images.count() == 0
+    assert product.specs.count() == 0

@@ -116,6 +116,51 @@ def test_row_with_wrong_field_count(files):
     assert QuoteRequest.objects.count() == 0
 
 
+def test_reports_broken_product_list_bad_item_and_unnormalized_phone(tmp_path):
+    """One row has invalid JSON in product_list, one has an item entry with a bad id, one has an
+    unnormalizable phone; the summary must count all three explicitly instead of dropping them
+    silently."""
+    rows = [
+        # broken product_list (not valid JSON)
+        ["1", "Один", "8 777 305 42 43", "{not valid json"],
+        # one good item + one bad item entry (missing/invalid id)
+        [
+            "2",
+            "Два",
+            "8 777 305 42 44",
+            json.dumps(
+                [{"id": 10, "name": "Трубогиб"}, {"id": "не число", "name": "Плохой"}],
+                ensure_ascii=False,
+            ),
+        ],
+        # unnormalizable phone
+        ["3", "Три", "не телефон", "[]"],
+    ]
+    dump = "\n".join(
+        [
+            "SET statement_timeout = 0;",
+            "COPY public.request (id, customer_name, customer_phone, product_list) FROM stdin;",
+            *["\t".join(copy_escape(v) for v in row) for row in rows],
+            "\\.",
+            "",
+        ]
+    )
+    dump_path = tmp_path / "request.sql"
+    dump_path.write_text(dump, encoding="utf-8")
+    content_path = tmp_path / "catalog.yaml"
+    content_yaml = {"categories": [], "products": [{"slug": "tpg-2b", "legacy_ids": [10]}]}
+    content_path.write_text(yaml.safe_dump(content_yaml, allow_unicode=True), encoding="utf-8")
+    make_product(slug="tpg-2b")
+
+    output = run({"dump": dump_path, "content": content_path})
+
+    assert "Импортировано: 3" in output
+    assert "Не разобран product_list (JSON невалиден): 1" in output
+    assert "Пропущено позиций (некорректная форма/id): 1" in output
+    assert "Телефонов не нормализовано (сохранены как есть): 1" in output
+    assert QuoteRequest.objects.get(admin_note__startswith="legacy:3 ").phone == "не телефон"
+
+
 def test_missing_id_column(files):
     """Test that missing id column raises CommandError naming the column."""
     dump = "\n".join(

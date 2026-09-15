@@ -119,8 +119,8 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = timedelta(minutes=30)
 AXES_RESET_ON_SUCCESS = True
-# Caddy перезаписывает X-Forwarded-For для недоверенных клиентов, поэтому первое значение — реальный IP
-AXES_IPWARE_META_PRECEDENCE_ORDER = ["HTTP_X_FORWARDED_FOR", "REMOTE_ADDR"]
+# axes и лимитер заявок используют один и тот же способ определения IP клиента
+AXES_CLIENT_IP_CALLABLE = "orders.views.client_ip"
 
 # Security (HTTPS терминирует Caddy)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -37,3 +37,12 @@ def test_compose_binds_web_to_localhost_only():
     compose = (ROOT / "compose.yml").read_text(encoding="utf-8")
     assert '"127.0.0.1:${WEB_PORT:-8001}:8000"' in compose
     assert "5432:5432" not in compose
+
+
+def test_production_env_template_is_production_safe():
+    path = ROOT / "deploy" / ".env.production.example"
+    assert path.exists()
+    content = path.read_text(encoding="utf-8")
+    assert "DEBUG=False" in content
+    assert "DEBUG=True" not in content
+    assert "django.core.cache.backends.db.DatabaseCache" in content

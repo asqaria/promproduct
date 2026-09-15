@@ -41,18 +41,12 @@ def parse_copy_rows(text: str) -> list[dict]:
             continue
         if line == r"\.":
             break
-        try:
-            rows.append(
-                dict(zip(columns, (unescape_copy(v) for v in line.split("\t")), strict=True))
+        values = line.split("\t")
+        if len(values) != len(columns):
+            raise CommandError(
+                f"Строка {line_number} дампа: ожидалось {len(columns)} полей, найдено {len(values)}"
             )
-        except ValueError as e:
-            if "zip()" in str(e):
-                actual_count = len(line.split("\t"))
-                expected_count = len(columns)
-                raise CommandError(
-                    f"Строка {line_number} дампа: ожидалось {expected_count} полей, найдено {actual_count}"
-                ) from e
-            raise
+        rows.append(dict(zip(columns, (unescape_copy(v) for v in values), strict=True)))
 
     if columns is None:
         raise CommandError("В дампе не найден блок COPY для таблицы request")
@@ -78,6 +72,9 @@ class Command(BaseCommand):
         base_time = datetime.combine(option_date, time(0), tzinfo=ZoneInfo(settings.TIME_ZONE))
 
         imported = skipped = 0
+        unparseable_product_lists = 0
+        bad_item_entries = 0
+        unnormalized_phones = 0
         with transaction.atomic():
             for row in rows:
                 legacy_id = int(row["id"])
@@ -87,9 +84,13 @@ class Command(BaseCommand):
                     continue
 
                 raw_phone = row.get("customer_phone") or ""
+                phone = normalize_phone(raw_phone)
+                if phone is None:
+                    unnormalized_phones += 1
+                    phone = raw_phone[:16]
                 quote = QuoteRequest.objects.create(
                     name=(row.get("customer_name") or "Без имени")[:100],
-                    phone=normalize_phone(raw_phone) or raw_phone[:16],
+                    phone=phone,
                     status=QuoteRequest.Status.CLOSED,
                     email_sent=True,
                     admin_note=f"{marker}Перенесено со старого сайта.",
@@ -98,14 +99,19 @@ class Command(BaseCommand):
 
                 try:
                     entries = json.loads(row.get("product_list") or "[]")
+                    if not isinstance(entries, list):
+                        raise ValueError("product_list не является списком")
                 except ValueError:
                     entries = []
+                    unparseable_product_lists += 1
                 counts: Counter = Counter()
                 names: dict[int, str] = {}
                 for entry in entries:
                     if isinstance(entry, dict) and isinstance(entry.get("id"), int):
                         counts[entry["id"]] += 1
                         names.setdefault(entry["id"], str(entry.get("name") or f"Товар #{entry['id']}"))
+                    else:
+                        bad_item_entries += 1
                 QuoteItem.objects.bulk_create(
                     [
                         QuoteItem(
@@ -119,4 +125,10 @@ class Command(BaseCommand):
                 )
                 imported += 1
 
-        self.stdout.write(f"Импортировано: {imported}\nПропущено (уже импортированы): {skipped}")
+        self.stdout.write(
+            f"Импортировано: {imported}\n"
+            f"Пропущено (уже импортированы): {skipped}\n"
+            f"Не разобран product_list (JSON невалиден): {unparseable_product_lists}\n"
+            f"Пропущено позиций (некорректная форма/id): {bad_item_entries}\n"
+            f"Телефонов не нормализовано (сохранены как есть): {unnormalized_phones}"
+        )

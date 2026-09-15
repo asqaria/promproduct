@@ -6,7 +6,9 @@
 		file_server
 	}
 	handle {
-		reverse_proxy 127.0.0.1:8001
+		reverse_proxy 127.0.0.1:8001 {
+			header_up X-Forwarded-For {remote_host}
+		}
 	}
 }
 
