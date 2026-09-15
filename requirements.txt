@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-httpx
-aiosmtplib
-python-dotenv
-asyncpg
-sqlalchemy
-psycopg2

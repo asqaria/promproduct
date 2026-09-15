@@ -1,13 +1,41 @@
 [project]
-name = "FastAPI-app"
-version = "0.1.0"
-description = "A simple FastAPI application."
+name = "promproduct"
+version = "2.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.2,<5.3",
+    "psycopg[binary]>=3.2",
+    "django-environ>=0.12",
+    "gunicorn>=23",
+    "whitenoise>=6.9",
+    "pillow>=11",
+    "nh3>=0.2.20",
+    "django-axes>=8",
+    "django-prose-editor>=0.15",
+    "pyyaml>=6",
+]
 
-readme = "README.md"
-requires-python = ">=3.11"
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.9",
+    "beautifulsoup4>=4.12",
+    "ruff>=0.8",
+]
 
-[project.dependencies]
-dependencies = "requirements.txt"
+[tool.uv]
+package = false
 
-[project.optional-dependencies]
-dev-requirements = {file = "dev-requirements.txt"}
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "DJ"]

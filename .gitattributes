@@ -1,0 +1,6 @@
+* text=auto
+*.sh text eol=lf
+deploy/entrypoint.sh text eol=lf
+*.webp binary
+*.png binary
+*.jpg binary
