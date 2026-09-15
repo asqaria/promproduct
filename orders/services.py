@@ -1,7 +1,10 @@
 import json
 import re
 
+from django.db import transaction
+
 from catalog.models import Product
+from orders.models import QuoteItem, QuoteRequest
 
 MAX_ITEMS = 50
 MAX_QTY = 999
@@ -48,3 +51,20 @@ def parse_items(raw: str | None) -> list[tuple[Product, int]]:
     if not result:
         raise ItemsError("Корзина пуста или товары недоступны.")
     return result
+
+
+def create_quote(
+    name: str, phone: str, items: list[tuple[Product, int]], source_ip: str | None
+) -> QuoteRequest:
+    from orders.notifications import send_quote_notification
+
+    with transaction.atomic():
+        quote = QuoteRequest.objects.create(name=name, phone=phone, source_ip=source_ip)
+        QuoteItem.objects.bulk_create(
+            [
+                QuoteItem(request=quote, product=product, product_name=product.name, quantity=qty)
+                for product, qty in items
+            ]
+        )
+        transaction.on_commit(lambda: send_quote_notification(quote.pk))
+    return quote
