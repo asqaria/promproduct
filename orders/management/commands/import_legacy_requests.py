@@ -27,15 +27,33 @@ def unescape_copy(value: str) -> str | None:
 def parse_copy_rows(text: str) -> list[dict]:
     columns = None
     rows = []
-    for line in text.splitlines():
+    required_columns = {"id", "customer_name", "customer_phone", "product_list"}
+
+    for line_number, line in enumerate(text.splitlines(), 1):
         if columns is None:
             match = COPY_RE.match(line.strip())
             if match:
                 columns = [column.strip() for column in match.group(1).split(",")]
+                # Validate that all required columns are present
+                missing = required_columns - set(columns)
+                if missing:
+                    raise CommandError(f"В блоке COPY нет колонок: {', '.join(sorted(missing))}")
             continue
         if line == r"\.":
             break
-        rows.append(dict(zip(columns, (unescape_copy(v) for v in line.split("\t")), strict=True)))
+        try:
+            rows.append(
+                dict(zip(columns, (unescape_copy(v) for v in line.split("\t")), strict=True))
+            )
+        except ValueError as e:
+            if "zip()" in str(e):
+                actual_count = len(line.split("\t"))
+                expected_count = len(columns)
+                raise CommandError(
+                    f"Строка {line_number} дампа: ожидалось {expected_count} полей, найдено {actual_count}"
+                ) from e
+            raise
+
     if columns is None:
         raise CommandError("В дампе не найден блок COPY для таблицы request")
     return rows

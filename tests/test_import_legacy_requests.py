@@ -97,3 +97,37 @@ def test_missing_copy_block_is_error(files):
     files["dump"].write_text("SELECT 1;\n", encoding="utf-8")
     with pytest.raises(CommandError, match="COPY"):
         run(files)
+
+
+def test_row_with_wrong_field_count(files):
+    """Test that malformed rows with wrong field count raise CommandError with line number."""
+    dump = "\n".join(
+        [
+            "SET statement_timeout = 0;",
+            "COPY public.request (id, customer_name, customer_phone, product_list) FROM stdin;",
+            "1\tИван\t8 777 305 42 43",  # Missing product_list field (line 3 in dump)
+            "\\.",
+            "",
+        ]
+    )
+    files["dump"].write_text(dump, encoding="utf-8")
+    with pytest.raises(CommandError, match="Строка.*3.*ожидалось.*4.*найдено.*3"):
+        run(files)
+    assert QuoteRequest.objects.count() == 0
+
+
+def test_missing_id_column(files):
+    """Test that missing id column raises CommandError naming the column."""
+    dump = "\n".join(
+        [
+            "SET statement_timeout = 0;",
+            "COPY public.request (customer_name, customer_phone, product_list) FROM stdin;",
+            "Иван\t8 777 305 42 43\t[]",
+            "\\.",
+            "",
+        ]
+    )
+    files["dump"].write_text(dump, encoding="utf-8")
+    with pytest.raises(CommandError, match="id"):
+        run(files)
+    assert QuoteRequest.objects.count() == 0
