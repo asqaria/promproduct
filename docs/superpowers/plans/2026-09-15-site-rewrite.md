@@ -2229,21 +2229,26 @@ git commit -m "feat(catalog): add SEO titles, descriptions and JSON-LD helpers"
 ```
 
 ---
-### Task 8: Публичные страницы каталога
+### Task 8: Публичные страницы каталога в трёхколоночной оболочке
+
+> Пересмотрено 2026-09-16 после согласования макета владельцем: каркас из трёх колонок (слева категории, по центру содержимое, справа панель «Запрос КП» и контакты), как на старом сайте. Разметка повторяет `docs/design/mockup.html` (коммит ccc25b3); классы — из `static/css/site.css`.
 
 **Files:**
-- Create: `catalog/views.py`, `catalog/urls.py`, `templates/base.html`, `templates/404.html`, `templates/includes/breadcrumbs.html`, `templates/includes/product_card.html`, `templates/catalog/home.html`, `templates/catalog/index.html`, `templates/catalog/category.html`, `templates/catalog/product.html`, `templates/catalog/contacts.html`
+- Create: `catalog/views.py`, `catalog/urls.py`, `templates/base.html`, `templates/404.html`, `templates/includes/breadcrumbs.html`, `templates/includes/product_card.html`, `templates/includes/sidebar.html`, `templates/includes/side_panel.html`, `templates/includes/quote_panel.html`, `templates/catalog/home.html`, `templates/catalog/index.html`, `templates/catalog/category.html`, `templates/catalog/product.html`, `templates/catalog/contacts.html`
 - Modify: `config/urls.py`
 - Delete: `templates/.gitkeep`
 - Test: `tests/test_catalog_views.py`
 
 **Interfaces:**
-- Consumes: `catalog.seo.*` (Task 7), `SiteSettings.load()`, `Product.main_image`, `Product.displayed_price`, CSS-классы из Task 6, контекст `site`, `site_url`, `nav_categories` (Task 4).
+- Consumes: `catalog.seo.*` (Task 7), `SiteSettings.load()`, `Product.main_image`, `Product.displayed_price`, CSS-классы из Task 6 (`static/css/site.css`), контекст `site`, `site_url`, `nav_categories` (Task 4).
 - Produces:
   - URL names: `catalog:home` (`/`), `catalog:index` (`/catalog/`), `catalog:category` (`/catalog/<slug>/`), `catalog:product` (`/catalog/<category_slug>/<slug>/`), `catalog:contacts` (`/contacts/`).
   - `catalog.views.public_products() -> QuerySet[Product]` (активные товары активных категорий, с `category` и `images`).
-  - `templates/base.html`: переменные `page_title`, `page_description`; блоки `title`, `robots`, `canonical`, `og_image`, `structured_data`, `content`. Подключает `static/js/cart.js` (файл появится в Task 14). В шапке — ссылка `/quote/` со счётчиком `<span class="cart-count" data-cart-count hidden>`.
-  - Страница товара: контейнер `div.product__actions[data-product]` с атрибутами `data-id`, `data-name`, `data-url`, `data-thumb`; внутри `input[data-qty]` и `button[data-add-to-quote]`; миниатюры галереи `button[data-gallery-thumb][data-full][data-alt]`, главное фото `img[data-gallery-main]`.
+  - Контекстная переменная `nav_active` во всех view каталога: `"all"` на главной, slug категории на страницах категории и товара, `""` на остальных.
+  - `templates/base.html`: переменные `page_title`, `page_description`; блоки `title`, `robots`, `canonical`, `og_image`, `structured_data`, `content`. Подключает `static/js/cart.js` (файл появится в Task 14). Каркас: `header.topbar` → `div.mobile-bar` (кнопка `button.categories-toggle[data-drawer-toggle][aria-controls="catalog-menu"]`, ссылка `a.cart-link[href="#quote-panel"]` со счётчиком `span.cart-count[data-cart-count][hidden]`) → `div.layout` (`aside.sidebar#catalog-menu`, `div.drawer-backdrop[data-drawer-backdrop][hidden]`, `main.content#main`, `aside.side-panel#quote-panel`) → `footer.site-footer`.
+  - `templates/includes/quote_panel.html` — секция `section.quote-panel` со списком `ul.quote-list[data-quote-list]` и `p.quote-empty[data-quote-empty]`; форму добавит Task 13, заменив этот файл.
+  - Карточка товара `div.product-card[data-product]` с `data-id`, `data-name`, `data-url`, `data-thumb` и кнопкой `button.product-card__add[data-add-to-quote]` «В запрос».
+  - Страница товара: `div.product__actions[data-product]` с теми же `data-*`; внутри `input[data-qty]` и `button[data-add-to-quote]`; миниатюры галереи `button[data-gallery-thumb][data-full][data-alt]`, главное фото `img[data-gallery-main]`.
 
 - [ ] **Step 1: Написать падающие тесты**
 
@@ -2255,7 +2260,7 @@ from decimal import Decimal
 import pytest
 from bs4 import BeautifulSoup
 
-from catalog.models import ProductSpec
+from catalog.models import Category, Product, ProductSpec
 from tests.factories import make_category, make_product
 
 pytestmark = pytest.mark.django_db
@@ -2271,8 +2276,8 @@ def ld_objects(response) -> list[dict]:
 
 @pytest.fixture
 def catalog_data():
-    pipe = make_category(name="Трубогибы", slug="pipe-benders", seo_text="<p>Гибка труб.</p>")
-    make_category(name="Пустая", slug="empty")
+    pipe = make_category(name="Трубогибы", slug="pipe-benders", seo_text="<p>Гибка труб.</p>", sort_order=10)
+    make_category(name="Пустая", slug="empty", sort_order=20)
     product = make_product(
         category=pipe,
         name="Трубогиб ТПГ-2Б",
@@ -2285,28 +2290,69 @@ def catalog_data():
     return {"category": pipe, "product": product}
 
 
-def test_home_lists_categories_with_products_and_featured(client, catalog_data):
+@pytest.mark.parametrize("url", ["/", "/catalog/", "/catalog/pipe-benders/", "/catalog/pipe-benders/tpg-2b/", "/contacts/"])
+def test_every_page_has_three_column_shell(client, catalog_data, url):
+    page = soup(client.get(url))
+    assert page.select_one("aside.sidebar#catalog-menu nav.category-nav") is not None
+    assert page.select_one("main.content#main") is not None
+    assert page.select_one("aside.side-panel#quote-panel [data-quote-list]") is not None
+    assert page.select_one("[data-drawer-toggle][aria-controls='catalog-menu']") is not None
+    assert page.select_one("[data-drawer-backdrop]").has_attr("hidden")
+    assert page.select_one("a.cart-link[href='#quote-panel'] [data-cart-count]") is not None
+    assert "wa.me/77773054243" in page.select_one(".contacts-panel").decode()
+
+
+def test_sidebar_lists_categories_and_marks_current(client, catalog_data):
+    home = soup(client.get("/"))
+    assert home.select_one(".category-nav a[aria-current='page']").get_text() == "Все товары"
+    names = [a.get_text() for a in home.select(".category-nav a")]
+    assert names[0] == "Все товары"
+    assert "Трубогибы" in names
+
+    category_page = soup(client.get("/catalog/pipe-benders/"))
+    assert category_page.select_one(".category-nav a[aria-current='page']").get_text() == "Трубогибы"
+
+    product_page = soup(client.get("/catalog/pipe-benders/tpg-2b/"))
+    assert product_page.select_one(".category-nav a[aria-current='page']").get_text() == "Трубогибы"
+
+
+def test_home_groups_products_by_category_in_sort_order(client, catalog_data):
+    jacks = make_category(name="Домкраты", slug="jacks", sort_order=5)
+    make_product(category=jacks, name="Домкрат ДА5", slug="da-5")
+    make_product(category=catalog_data["category"], name="Трубогиб ТПГ-1Б", slug="tpg-1b", is_active=False)
+
     response = client.get("/")
-    assert response.status_code == 200
     page = soup(response)
-    names = [el.get_text() for el in page.select(".category-card__name")]
-    assert names == ["Трубогибы"]
-    assert "Трубогиб ТПГ-2Б" in page.select_one(".product-grid").get_text()
+    blocks = page.select("section.category-block")
+    assert [b.select_one("h2").get_text() for b in blocks] == ["Домкраты", "Трубогибы"]
+    assert [a.get_text() for a in blocks[1].select(".product-card__name")] == ["Трубогиб ТПГ-2Б"]
+    assert blocks[1].select_one(".section__head a")["href"] == "/catalog/pipe-benders/"
     assert any(obj["@type"] == "LocalBusiness" for obj in ld_objects(response))
+
+
+def test_product_card_hooks(client, catalog_data):
+    page = soup(client.get("/catalog/pipe-benders/"))
+    card = page.select_one(".product-grid [data-product]")
+    assert card["data-id"] == str(catalog_data["product"].pk)
+    assert card["data-name"] == "Трубогиб ТПГ-2Б"
+    assert card["data-url"] == "/catalog/pipe-benders/tpg-2b/"
+    assert card.select_one("button.product-card__add[data-add-to-quote]").get_text(strip=True) == "В запрос"
+    assert card.select_one("a.product-card__name")["href"] == "/catalog/pipe-benders/tpg-2b/"
 
 
 def test_catalog_index(client, catalog_data):
     response = client.get("/catalog/")
+    page = soup(response)
     assert response.status_code == 200
-    assert soup(response).h1.get_text() == "Каталог"
-    assert "Трубогибы" in response.content.decode()
+    assert page.select_one("main h1").get_text() == "Каталог"
+    assert [el.get_text() for el in page.select(".category-card__name")] == ["Трубогибы"]
 
 
 def test_category_page_seo(client, catalog_data):
     response = client.get("/catalog/pipe-benders/")
     page = soup(response)
     assert response.status_code == 200
-    assert page.h1.get_text() == "Трубогибы"
+    assert page.select_one("main h1").get_text() == "Трубогибы"
     assert page.title.get_text() == "Трубогибы купить в Астане — Батыс Курылыс XXI"
     assert page.find("meta", attrs={"name": "description"})["content"] == "Гибка труб."
     assert page.find("link", rel="canonical")["href"] == "http://localhost:8000/catalog/pipe-benders/"
@@ -2318,7 +2364,7 @@ def test_product_page_content_and_seo(client, catalog_data):
     response = client.get("/catalog/pipe-benders/tpg-2b/")
     page = soup(response)
     assert response.status_code == 200
-    assert page.h1.get_text() == "Трубогиб ТПГ-2Б"
+    assert page.select_one("main h1").get_text() == "Трубогиб ТПГ-2Б"
     assert page.title.get_text() == "Трубогиб ТПГ-2Б купить в Астане — Батыс Курылыс XXI"
     assert page.find("meta", attrs={"name": "description"})["content"] == "Для труб до 2 дюймов."
     assert page.find("link", rel="canonical")["href"] == "http://localhost:8000/catalog/pipe-benders/tpg-2b/"
@@ -2331,15 +2377,14 @@ def test_product_page_content_and_seo(client, catalog_data):
 
 
 def test_product_page_cart_and_whatsapp_hooks(client, catalog_data):
-    response = client.get("/catalog/pipe-benders/tpg-2b/")
-    page = soup(response)
-    actions = page.select_one("[data-product]")
+    page = soup(client.get("/catalog/pipe-benders/tpg-2b/"))
+    actions = page.select_one(".product__actions[data-product]")
     assert actions["data-id"] == str(catalog_data["product"].pk)
     assert actions["data-name"] == "Трубогиб ТПГ-2Б"
     assert actions["data-url"] == "/catalog/pipe-benders/tpg-2b/"
     assert actions.select_one("[data-add-to-quote]") is not None
     assert actions.select_one("input[data-qty]")["max"] == "999"
-    whatsapp = page.select_one("a.btn--whatsapp")["href"]
+    whatsapp = actions.select_one("a.btn--whatsapp")["href"]
     assert whatsapp.startswith("https://wa.me/77773054243?text=")
 
 
@@ -2362,42 +2407,37 @@ def test_product_under_wrong_category_redirects(client, catalog_data):
     assert response["Location"] == "/catalog/pipe-benders/tpg-2b/"
 
 
-@pytest.mark.parametrize(
-    "change",
-    [
-        lambda data: data["product"].__class__.objects.filter(pk=data["product"].pk).update(is_active=False),
-        lambda data: data["category"].__class__.objects.filter(pk=data["category"].pk).update(is_active=False),
-    ],
-)
-def test_inactive_product_or_category_is_404(client, catalog_data, change):
-    change(catalog_data)
+def test_inactive_product_is_404(client, catalog_data):
+    Product.objects.filter(pk=catalog_data["product"].pk).update(is_active=False)
     response = client.get("/catalog/pipe-benders/tpg-2b/")
     assert response.status_code == 404
     assert "Страница не найдена" in response.content.decode()
 
 
-def test_inactive_category_page_is_404(client, catalog_data):
-    catalog_data["category"].__class__.objects.filter(pk=catalog_data["category"].pk).update(is_active=False)
+def test_inactive_category_hides_category_and_its_products(client, catalog_data):
+    Category.objects.filter(pk=catalog_data["category"].pk).update(is_active=False)
     assert client.get("/catalog/pipe-benders/").status_code == 404
+    assert client.get("/catalog/pipe-benders/tpg-2b/").status_code == 404
 
 
 def test_contacts_page(client, catalog_data):
     response = client.get("/contacts/")
+    page = soup(response)
     assert response.status_code == 200
-    text = response.content.decode()
-    assert "Керей Жанибек хандар" in text
-    assert "wa.me/77773773763" in text
+    assert "Керей Жанибек хандар" in page.select_one("main").get_text()
+    assert "wa.me/77773773763" in page.select_one("main").decode()
 ```
 
 - [ ] **Step 2: Запустить — должны упасть**
 
 Run: `uv run pytest tests/test_catalog_views.py`
-Expected: FAIL — `test_home_...` получает 404 (URL ещё нет).
+Expected: FAIL — страницы отвечают 404 (URL ещё нет).
 
 - [ ] **Step 3: Views**
 
 `catalog/views.py`:
 ```python
+from itertools import groupby
 from urllib.parse import quote as urlquote
 
 from django.db.models import Count, Q
@@ -2427,17 +2467,25 @@ def categories_with_products():
     )
 
 
+def category_blocks() -> list[dict]:
+    products = public_products().order_by("category__sort_order", "category__name", "sort_order", "name")
+    return [
+        {"category": items[0].category, "products": items}
+        for items in (list(group) for _, group in groupby(products, key=lambda p: p.category_id))
+    ]
+
+
 @require_GET
 def home(request):
     site = SiteSettings.load()
     context = {
+        "nav_active": "all",
         "page_title": f"Гидравлический и трубный инструмент в Астане — {site.company_name}",
         "page_description": (
             "Трубогибы, прессы, домкраты, маслостанции, съёмники подшипников и шинообрабатывающее "
             "оборудование в Астане. Запрос коммерческого предложения онлайн."
         ),
-        "categories": categories_with_products(),
-        "featured": public_products()[:8],
+        "category_blocks": category_blocks(),
         "local_business": seo.local_business_ld(site),
     }
     return render(request, "catalog/home.html", context)
@@ -2448,6 +2496,7 @@ def catalog_index(request):
     site = SiteSettings.load()
     breadcrumbs = [HOME_CRUMB, CATALOG_CRUMB]
     context = {
+        "nav_active": "",
         "page_title": f"Каталог инструмента — {site.company_name}",
         "page_description": (
             "Каталог гидравлического и трубного инструмента: трубогибы, прессы, домкраты, маслостанции "
@@ -2466,6 +2515,7 @@ def category_detail(request, slug: str):
     site = SiteSettings.load()
     breadcrumbs = [HOME_CRUMB, CATALOG_CRUMB, (category.name, category.get_absolute_url())]
     context = {
+        "nav_active": category.slug,
         "category": category,
         "products": public_products().filter(category=category),
         "page_title": seo.category_title(category, site.company_name),
@@ -2500,6 +2550,7 @@ def product_detail(request, category_slug: str, slug: str):
         (product.name, product.get_absolute_url()),
     ]
     context = {
+        "nav_active": product.category.slug,
         "product": product,
         "images": list(product.images.all()),
         "specs": list(product.specs.all()),
@@ -2519,6 +2570,7 @@ def contacts(request):
     site = SiteSettings.load()
     breadcrumbs = [HOME_CRUMB, ("Контакты", "/contacts/")]
     context = {
+        "nav_active": "",
         "page_title": f"Контакты — {site.company_name}",
         "page_description": f"Адрес, телефоны и WhatsApp компании {site.company_name} в Астане.",
         "breadcrumbs": breadcrumbs,
@@ -2563,7 +2615,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ```
 
-- [ ] **Step 5: Базовый шаблон и include-ы**
+- [ ] **Step 5: Каркас и include-ы**
 
 ```bash
 git rm -q templates/.gitkeep
@@ -2591,49 +2643,94 @@ git rm -q templates/.gitkeep
   <script src="{% static 'js/cart.js' %}" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#main">К содержимому</a>
-  <header class="site-header">
-    <div class="container site-header__inner">
+  <a class="skip-link" href="#main">Перейти к содержимому</a>
+
+  <header class="topbar">
+    <div class="container container--wide topbar__inner">
       <a class="logo" href="/">{{ site.company_name }}</a>
-      <nav class="nav" aria-label="Основное меню">
-        <a href="/catalog/">Каталог</a>
-        <a href="/contacts/">Контакты</a>
-      </nav>
-      <a class="cart-link" href="/quote/">Запрос <span class="cart-count" data-cart-count hidden>0</span></a>
+      <div class="topbar__contact">
+        {% with phone=site.phone_list.0 wa=site.whatsapp_list.0 %}
+          {% if phone %}
+            <a href="tel:{{ phone|cut:' ' }}">{{ phone }}</a>
+          {% elif wa %}
+            <a href="tel:+{{ wa.wa }}">{{ wa.display }}</a>
+          {% endif %}
+          {% if wa %}<a class="btn btn--whatsapp" href="https://wa.me/{{ wa.wa }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+        {% endwith %}
+      </div>
     </div>
   </header>
 
-  <main id="main" class="container">
-    {% block content %}{% endblock %}
-  </main>
+  <div class="mobile-bar">
+    <div class="container container--wide mobile-bar__inner">
+      <button type="button" class="btn btn--ghost categories-toggle" aria-expanded="false" aria-controls="catalog-menu" data-drawer-toggle>Категории</button>
+      <a class="cart-link" href="#quote-panel">Запрос <span class="cart-count" data-cart-count hidden>0</span></a>
+    </div>
+  </div>
+
+  <div class="layout">
+    {% include "includes/sidebar.html" %}
+    <div class="drawer-backdrop" hidden aria-hidden="true" data-drawer-backdrop></div>
+    <main class="content" id="main">
+      {% block content %}{% endblock %}
+    </main>
+    {% include "includes/side_panel.html" %}
+  </div>
 
   <footer class="site-footer">
-    <div class="container footer-grid">
+    <div class="container container--wide footer-grid">
       <div>
         <h2>{{ site.company_name }}</h2>
         {% if site.address %}<p>{{ site.address }}</p>{% endif %}
         {% if site.bin %}<p>БИН {{ site.bin }}</p>{% endif %}
       </div>
       <div>
-        <h2>Каталог</h2>
-        <ul>
-          {% for category in nav_categories %}
-            <li><a href="{{ category.get_absolute_url }}">{{ category.name }}</a></li>
-          {% endfor %}
-        </ul>
-      </div>
-      <div>
-        <h2>Связаться</h2>
-        <ul>
-          {% for phone in site.phone_list %}<li><a href="tel:{{ phone|cut:' ' }}">{{ phone }}</a></li>{% endfor %}
-          {% for wa in site.whatsapp_list %}<li><a href="https://wa.me/{{ wa.wa }}" target="_blank" rel="noopener">WhatsApp {{ wa.display }}</a></li>{% endfor %}
-          {% if site.public_email %}<li><a href="mailto:{{ site.public_email }}">{{ site.public_email }}</a></li>{% endif %}
-        </ul>
+        <p>© {% now "Y" %} {{ site.company_name }}</p>
       </div>
     </div>
   </footer>
 </body>
 </html>
+```
+
+`templates/includes/sidebar.html`:
+```django
+<aside class="sidebar" id="catalog-menu">
+  <h2 class="sidebar__title">Категории</h2>
+  <nav class="category-nav" aria-label="Категории каталога">
+    <ul>
+      <li><a href="/"{% if nav_active == "all" %} aria-current="page"{% endif %}>Все товары</a></li>
+      {% for category in nav_categories %}
+        <li><a href="{{ category.get_absolute_url }}"{% if nav_active == category.slug %} aria-current="page"{% endif %}>{{ category.name }}</a></li>
+      {% endfor %}
+    </ul>
+  </nav>
+</aside>
+```
+
+`templates/includes/side_panel.html`:
+```django
+<aside class="side-panel" id="quote-panel">
+  {% include "includes/quote_panel.html" %}
+  <section class="contacts-panel panel">
+    <h2>Контакты</h2>
+    {% if site.address %}<p>{{ site.address }}{% if site.map_url %} · <a href="{{ site.map_url }}" target="_blank" rel="noopener">на карте</a>{% endif %}</p>{% endif %}
+    {% for phone in site.phone_list %}<p><a href="tel:{{ phone|cut:' ' }}">{{ phone }}</a></p>{% endfor %}
+    {% for wa in site.whatsapp_list %}<a class="btn btn--whatsapp" href="https://wa.me/{{ wa.wa }}" target="_blank" rel="noopener">WhatsApp {{ wa.display }}</a>{% endfor %}
+    {% if site.public_email %}<p><a href="mailto:{{ site.public_email }}">{{ site.public_email }}</a></p>{% endif %}
+    {% if site.working_hours %}<p class="note">{{ site.working_hours }}</p>{% endif %}
+  </section>
+</aside>
+```
+
+`templates/includes/quote_panel.html` (форму добавит Task 13):
+```django
+<section class="quote-panel panel">
+  <h2 class="quote-panel__title">Запрос КП</h2>
+  <p class="note">Добавьте товары — мы пришлём цены и сроки.</p>
+  <ul class="quote-list" data-quote-list></ul>
+  <p class="quote-empty" data-quote-empty>В запросе пока нет товаров</p>
+</section>
 ```
 
 `templates/includes/breadcrumbs.html`:
@@ -2654,24 +2751,25 @@ git rm -q templates/.gitkeep
 `templates/includes/product_card.html`:
 ```django
 {% with image=product.main_image %}
-<a class="product-card" href="{{ product.get_absolute_url }}">
-  <div class="product-card__image">
+<div class="product-card" data-product data-id="{{ product.pk }}" data-name="{{ product.name }}" data-url="{{ product.get_absolute_url }}" data-thumb="{% if image %}{{ image.thumbnail.url }}{% endif %}">
+  <a class="product-card__image" href="{{ product.get_absolute_url }}" tabindex="-1" aria-hidden="true">
     {% if image %}
       <img src="{{ image.thumbnail.url }}" alt="{{ image.alt }}" width="400" height="300" loading="lazy">
     {% else %}
       <span class="product-card__placeholder">Нет фото</span>
     {% endif %}
-  </div>
+  </a>
   <div class="product-card__body">
-    <span class="product-card__name">{{ product.name }}</span>
+    <a class="product-card__name" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
     {% if product.model_code %}<span class="product-card__model">{{ product.model_code }}</span>{% endif %}
     {% if product.displayed_price is not None %}
       <span class="product-card__price">{{ product.displayed_price|floatformat:"0g" }} ₸</span>
     {% else %}
       <span class="product-card__price price-on-request">Цена по запросу</span>
     {% endif %}
+    <button type="button" class="btn btn--primary product-card__add" data-add-to-quote>В запрос</button>
   </div>
-</a>
+</div>
 {% endwith %}
 ```
 
@@ -2683,13 +2781,13 @@ git rm -q templates/.gitkeep
 {% block content %}
   <div class="page-head">
     <h1>Страница не найдена</h1>
-    <p>Возможно, товар переименован или снят с продажи.</p>
+    <p>Возможно, товар переименован или снят с продажи. Выберите категорию слева.</p>
   </div>
-  <p><a class="btn btn--primary" href="/catalog/">Перейти в каталог</a></p>
+  <p><a class="btn btn--primary" href="/">Перейти к каталогу</a></p>
 {% endblock %}
 ```
 
-- [ ] **Step 6: Шаблоны страниц каталога**
+- [ ] **Step 6: Шаблоны страниц**
 
 `templates/catalog/home.html`:
 ```django
@@ -2697,45 +2795,20 @@ git rm -q templates/.gitkeep
 {% load seo_tags %}
 {% block structured_data %}{% ld_json local_business %}{% endblock %}
 {% block content %}
-  <section class="hero">
+  <div class="page-head">
     <h1>Гидравлический и трубный инструмент в Астане</h1>
-    <p class="hero__text">Трубогибы, прессы, домкраты, маслостанции, съёмники подшипников и шинообрабатывающее оборудование. Подберём модель под задачу и подготовим коммерческое предложение.</p>
-    <div class="hero__actions">
-      <a class="btn btn--primary" href="/catalog/">Перейти в каталог</a>
-      {% with wa=site.whatsapp_list.0 %}
-        {% if wa %}<a class="btn btn--ghost" href="https://wa.me/{{ wa.wa }}" target="_blank" rel="noopener">Написать в WhatsApp</a>{% endif %}
-      {% endwith %}
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section__head"><h2>Категории</h2><a href="/catalog/">Весь каталог</a></div>
-    <div class="category-grid">
-      {% for category in categories %}
-        <a class="category-card" href="{{ category.get_absolute_url }}">
-          <span class="category-card__name">{{ category.name }}</span>
-          <span class="category-card__count">Товаров: {{ category.product_count }}</span>
-        </a>
-      {% endfor %}
-    </div>
-  </section>
-
-  {% if featured %}
-    <section class="section">
-      <div class="section__head"><h2>Популярные товары</h2></div>
+    <p>Трубогибы, прессы, домкраты, маслостанции, съёмники подшипников и шинообрабатывающее оборудование. Подберём модель под задачу и подготовим коммерческое предложение.</p>
+  </div>
+  {% for block in category_blocks %}
+    <section class="category-block">
+      <div class="section__head"><h2>{{ block.category.name }}</h2><a href="{{ block.category.get_absolute_url }}">Все</a></div>
       <div class="product-grid">
-        {% for product in featured %}{% include "includes/product_card.html" %}{% endfor %}
+        {% for product in block.products %}{% include "includes/product_card.html" %}{% endfor %}
       </div>
     </section>
-  {% endif %}
-
-  <section class="section">
-    <ul class="features">
-      <li><strong>Подбор модели</strong>Поможем выбрать инструмент под ваши трубы, нагрузки и условия работы.</li>
-      <li><strong>Коммерческое предложение</strong>Соберите список в запросе — пришлём цены и сроки.</li>
-      <li><strong>Поставка по Казахстану</strong>Организуем поставку в ваш город.</li>
-    </ul>
-  </section>
+  {% empty %}
+    <p class="quote-empty">Каталог скоро появится.</p>
+  {% endfor %}
 {% endblock %}
 ```
 
@@ -2884,20 +2957,17 @@ git rm -q templates/.gitkeep
 - [ ] **Step 7: Запустить тесты**
 
 Run: `uv run pytest tests/test_catalog_views.py`
-Expected: `11 passed`.
+Expected: `17 passed`. Затем `uv run pytest` — все тесты проходят.
 
-- [ ] **Step 8: Ручная проверка**
+- [ ] **Step 8: Проверка разметки против макета**
 
-```bash
-uv run python manage.py runserver
-```
-Через админку создать категорию и товар с фото, открыть `/`, `/catalog/`, страницу категории и товара на 1280 и 360 px. Вид совпадает с согласованным макетом (Task 6); в консоли браузера допускается только 404 на `cart.js` (файл появится в Task 14).
+Сравнить отрендеренную главную (`uv run python manage.py runserver`, товары создать в админке) с `docs/design/mockup.html`: те же классы и вложенность для `topbar`, `mobile-bar`, `layout`, `sidebar`, `category-block`, `product-card`, `side-panel`, `contacts-panel`. В консоли браузера допускается только 404 на `cart.js` (появится в Task 14).
 
 - [ ] **Step 9: Commit**
 
 ```bash
 git add catalog config/urls.py templates tests/test_catalog_views.py
-git commit -m "feat(catalog): add server-rendered home, catalog, product and contacts pages"
+git commit -m "feat(catalog): add three-column catalog, product and contacts pages"
 ```
 
 ---
@@ -3714,20 +3784,23 @@ git commit -m "feat(orders): create quote requests atomically and email admin af
 ```
 
 ---
-### Task 13: Страница запроса и приём заявки
+### Task 13: Форма запроса в правой панели и приём заявки
+
+> Пересмотрено 2026-09-16: форма «имя + телефон» живёт в правой панели `#quote-panel` на каждой странице (как в согласованном макете). `/quote/` остаётся адресом отправки и страницей показа ошибок; `/quote/thanks/` — подтверждение.
 
 **Files:**
-- Create: `orders/forms.py`, `orders/views.py`, `orders/urls.py`, `templates/orders/quote.html`, `templates/orders/thanks.html`
-- Modify: `config/urls.py`
+- Create: `orders/forms.py`, `orders/views.py`, `orders/urls.py`, `orders/context_processors.py`, `templates/orders/quote.html`, `templates/orders/thanks.html`
+- Modify: `templates/includes/quote_panel.html` (файл целиком), `config/urls.py`, `config/settings.py` (context processor)
 - Test: `tests/test_quote_view.py`
 
 **Interfaces:**
-- Consumes: `normalize_phone`, `parse_items`, `ItemsError`, `create_quote` (Tasks 10, 12), `SiteSettings`.
+- Consumes: `normalize_phone`, `parse_items`, `ItemsError`, `create_quote` (Tasks 10, 12), `SiteSettings`, каркас `base.html` и `includes/side_panel.html` (Task 8).
 - Produces:
   - URL names `orders:quote` (`/quote/`), `orders:thanks` (`/quote/thanks/`).
   - `orders.forms.QuoteForm` с полями `name`, `phone`, `items` (hidden), `website` (honeypot); метод `is_spam() -> bool`.
+  - `orders.context_processors.quote_form(request) -> {"quote_form": QuoteForm()}`; view `/quote/` передаёт связанную форму под тем же именем `quote_form` (значение view перекрывает context processor).
   - `orders.views.client_ip(request) -> str | None`, `RATE_LIMIT = 5`, `RATE_WINDOW_SECONDS = 3600`.
-  - Разметка для `cart.js` (Task 14): `ul[data-quote-list]`, `p[data-quote-empty]`, `form[data-quote-form]` со скрытым `input[name="items"]`, `button[data-quote-submit]`; на странице «спасибо» — `div[data-cart-clear]`.
+  - Разметка для `cart.js` (Task 14): внутри `section.quote-panel` — `ul.quote-list[data-quote-list]`, `p.quote-empty[data-quote-empty]`, `form[data-quote-form]` со скрытым `input[name="items"]`, `button[data-quote-submit]`; на странице «спасибо» — `div[data-cart-clear]`.
 
 - [ ] **Step 1: Написать падающие тесты**
 
@@ -3761,13 +3834,26 @@ def payload(product, **overrides) -> dict:
     return data
 
 
-def test_get_renders_form_with_noindex(client):
-    response = client.get("/quote/")
-    page = BeautifulSoup(response.content, "html.parser")
-    assert response.status_code == 200
+@pytest.mark.parametrize("url", ["/", "/quote/", "/contacts/"])
+def test_side_panel_form_on_every_page(client, url):
+    page = BeautifulSoup(client.get(url).content, "html.parser")
+    form = page.select_one("#quote-panel form[data-quote-form]")
+    assert form["method"] == "post"
+    assert form["action"] == "/quote/"
+    assert form.select_one("input[name='csrfmiddlewaretoken']") is not None
+    assert form.select_one("input[type='hidden'][name='items']") is not None
+    assert form.select_one("input[name='name']") is not None
+    assert form.select_one("input[name='phone']")["type"] == "tel"
+    assert form.select_one("[data-quote-submit]") is not None
+    honeypot = form.select_one(".form__hp")
+    assert honeypot["aria-hidden"] == "true"
+    assert honeypot.select_one("input[name='website']")["tabindex"] == "-1"
+
+
+def test_quote_page_is_noindex(client):
+    page = BeautifulSoup(client.get("/quote/").content, "html.parser")
     assert page.find("meta", attrs={"name": "robots"})["content"] == "noindex, follow"
-    assert page.select_one("form[data-quote-form] input[name='items']") is not None
-    assert page.select_one("[data-quote-list]") is not None
+    assert page.select_one("main h1").get_text() == "Запрос коммерческого предложения"
 
 
 def test_valid_submission_creates_request_and_redirects(client, product, django_capture_on_commit_callbacks, settings):
@@ -3803,11 +3889,20 @@ def test_garbage_forwarded_ip_is_ignored(client, product):
         ({"items": json.dumps([{"id": 999999, "qty": 1}])}, "Корзина пуста или товары недоступны."),
     ],
 )
-def test_invalid_submission_shows_error(client, product, overrides, error):
+def test_invalid_submission_shows_error_in_side_panel(client, product, overrides, error):
     response = client.post("/quote/", payload(product, **overrides))
+    page = BeautifulSoup(response.content, "html.parser")
     assert response.status_code == 200
-    assert error in response.content.decode()
+    assert error in page.select_one("#quote-panel form[data-quote-form]").get_text()
+    assert "Заявка не отправлена" in page.select_one("main").get_text()
     assert QuoteRequest.objects.count() == 0
+
+
+def test_invalid_submission_keeps_entered_values(client, product):
+    response = client.post("/quote/", payload(product, phone="12345"))
+    form = BeautifulSoup(response.content, "html.parser").select_one("#quote-panel form[data-quote-form]")
+    assert form.select_one("input[name='name']")["value"] == "Иван"
+    assert form.select_one("input[name='phone']")["value"] == "12345"
 
 
 def test_honeypot_pretends_success_without_saving(client, product):
@@ -3836,17 +3931,19 @@ def test_rate_limit_is_per_ip(client, product):
 
 def test_thanks_page(client):
     response = client.get("/quote/thanks/?id=42")
-    body = response.content.decode()
+    page = BeautifulSoup(response.content, "html.parser")
     assert response.status_code == 200
-    assert "№42" in body
-    assert "data-cart-clear" in body
-    assert "№" not in client.get("/quote/thanks/?id=abc").content.decode()
+    assert "№42" in page.select_one("main").get_text()
+    assert page.select_one("[data-cart-clear]") is not None
+    assert page.find("meta", attrs={"name": "robots"})["content"] == "noindex, follow"
+    other = BeautifulSoup(client.get("/quote/thanks/?id=abc").content, "html.parser")
+    assert "№" not in other.select_one("main").get_text()
 ```
 
 - [ ] **Step 2: Запустить — должны упасть**
 
 Run: `uv run pytest tests/test_quote_view.py`
-Expected: FAIL — `/quote/` отвечает 404.
+Expected: FAIL — нет формы в правой панели, `/quote/` отвечает 404.
 
 - [ ] **Step 3: Форма**
 
@@ -3907,7 +4004,23 @@ class QuoteForm(forms.Form):
         return bool(self.data.get("website", "").strip())
 ```
 
-- [ ] **Step 4: Views и URL-ы**
+- [ ] **Step 4: Context processor**
+
+`orders/context_processors.py`:
+```python
+from orders.forms import QuoteForm
+
+
+def quote_form(request) -> dict:
+    return {"quote_form": QuoteForm()}
+```
+
+В `config/settings.py` в `TEMPLATES[0]["OPTIONS"]["context_processors"]` добавить последней строкой:
+```python
+                "orders.context_processors.quote_form",
+```
+
+- [ ] **Step 5: Views и URL-ы**
 
 `orders/views.py`:
 ```python
@@ -3973,7 +4086,8 @@ def quote(request):
 
     site = SiteSettings.load()
     context = {
-        "form": form,
+        "nav_active": "",
+        "quote_form": form,
         "page_title": f"Запрос коммерческого предложения — {site.company_name}",
         "page_description": "Список товаров для запроса коммерческого предложения.",
     }
@@ -3985,6 +4099,7 @@ def thanks(request):
     quote_id = request.GET.get("id", "")
     site = SiteSettings.load()
     context = {
+        "nav_active": "",
         "quote_id": quote_id if quote_id.isdigit() else None,
         "page_title": f"Запрос отправлен — {site.company_name}",
     }
@@ -4028,7 +4143,45 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ```
 
-- [ ] **Step 5: Шаблоны**
+- [ ] **Step 6: Шаблоны**
+
+`templates/includes/quote_panel.html` (файл целиком):
+```django
+<section class="quote-panel panel">
+  <h2 class="quote-panel__title">Запрос КП</h2>
+  <p class="note">Добавьте товары — мы пришлём цены и сроки.</p>
+  <ul class="quote-list" data-quote-list></ul>
+  <p class="quote-empty" data-quote-empty>В запросе пока нет товаров</p>
+  <noscript><p class="notice notice--error">Для работы списка включите JavaScript или напишите нам в WhatsApp.</p></noscript>
+
+  <form method="post" action="/quote/" class="form" data-quote-form novalidate>
+    {% csrf_token %}
+    {% if quote_form.non_field_errors or quote_form.items.errors %}
+      <div class="notice notice--error" role="alert">
+        {% for error in quote_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        {% for error in quote_form.items.errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    <div class="form__row">
+      <label for="{{ quote_form.name.id_for_label }}">Имя</label>
+      {{ quote_form.name }}
+      {% for error in quote_form.name.errors %}<p class="form__error">{{ error }}</p>{% endfor %}
+    </div>
+    <div class="form__row">
+      <label for="{{ quote_form.phone.id_for_label }}">Телефон</label>
+      {{ quote_form.phone }}
+      {% for error in quote_form.phone.errors %}<p class="form__error">{{ error }}</p>{% endfor %}
+    </div>
+    <div class="form__hp" aria-hidden="true">
+      <label for="{{ quote_form.website.id_for_label }}">Сайт</label>
+      {{ quote_form.website }}
+    </div>
+    {{ quote_form.items }}
+    <button type="submit" class="btn btn--primary" data-quote-submit>Отправить запрос</button>
+    <p class="note">Отправляя запрос, вы соглашаетесь на обработку имени и телефона.</p>
+  </form>
+</section>
+```
 
 `templates/orders/quote.html`:
 ```django
@@ -4037,42 +4190,12 @@ if settings.DEBUG:
 {% block content %}
   <div class="page-head">
     <h1>Запрос коммерческого предложения</h1>
-    <p>Проверьте список и оставьте контакты — мы свяжемся с вами и пришлём цены и сроки поставки.</p>
+    <p>Проверьте список товаров и оставьте имя и телефон в форме «Запрос КП» — мы свяжемся с вами и пришлём цены и сроки поставки.</p>
   </div>
-  <div class="quote-layout">
-    <div>
-      <ul class="quote-list" data-quote-list></ul>
-      <p class="quote-empty" data-quote-empty>В запросе пока нет товаров. <a href="/catalog/">Перейти в каталог</a></p>
-      <noscript><p class="notice notice--error">Для работы списка включите JavaScript или напишите нам в WhatsApp.</p></noscript>
-    </div>
-
-    <form method="post" action="/quote/" class="form panel" data-quote-form novalidate>
-      {% csrf_token %}
-      {% if form.non_field_errors or form.items.errors %}
-        <div class="notice notice--error" role="alert">
-          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-          {% for error in form.items.errors %}<p>{{ error }}</p>{% endfor %}
-        </div>
-      {% endif %}
-      <div class="form__row">
-        <label for="{{ form.name.id_for_label }}">Имя</label>
-        {{ form.name }}
-        {% for error in form.name.errors %}<p class="form__error">{{ error }}</p>{% endfor %}
-      </div>
-      <div class="form__row">
-        <label for="{{ form.phone.id_for_label }}">Телефон</label>
-        {{ form.phone }}
-        {% for error in form.phone.errors %}<p class="form__error">{{ error }}</p>{% endfor %}
-      </div>
-      <div class="form__hp" aria-hidden="true">
-        <label for="{{ form.website.id_for_label }}">Сайт</label>
-        {{ form.website }}
-      </div>
-      {{ form.items }}
-      <button type="submit" class="btn btn--primary" data-quote-submit>Отправить запрос</button>
-      <p class="note">Нажимая кнопку, вы соглашаетесь на обработку имени и телефона для ответа на запрос.</p>
-    </form>
-  </div>
+  {% if quote_form.errors %}
+    <p class="notice notice--error" role="alert">Заявка не отправлена — проверьте поля в форме «Запрос КП».</p>
+  {% endif %}
+  <p><a class="btn btn--ghost" href="/">Вернуться к каталогу</a></p>
 {% endblock %}
 ```
 
@@ -4089,26 +4212,27 @@ if settings.DEBUG:
     {% with wa=site.whatsapp_list.0 %}
       {% if wa %}<p>Срочный вопрос? <a class="btn btn--whatsapp" href="https://wa.me/{{ wa.wa }}" target="_blank" rel="noopener">Написать в WhatsApp</a></p>{% endif %}
     {% endwith %}
-    <p><a href="/catalog/">Вернуться в каталог</a></p>
+    <p><a href="/">Вернуться к каталогу</a></p>
   </section>
 {% endblock %}
 ```
 
-- [ ] **Step 6: Запустить тесты**
+- [ ] **Step 7: Запустить тесты**
 
 Run: `uv run pytest`
-Expected: все тесты проходят (`tests/test_quote_view.py`: `13 passed`).
+Expected: все тесты проходят (`tests/test_quote_view.py`: `17 passed`).
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add orders config/urls.py templates/orders tests/test_quote_view.py
-git commit -m "feat(orders): add quote page with validation, honeypot and per-IP rate limit"
+git add orders config templates tests/test_quote_view.py
+git commit -m "feat(orders): add side-panel quote form with validation, honeypot and per-IP rate limit"
 ```
 
 ---
+### Task 14: Корзина, меню категорий и галерея на JavaScript
 
-### Task 14: Корзина на JavaScript
+> Пересмотрено 2026-09-16: список запроса рисуется в правой панели на каждой странице; добавлены выезжающее меню категорий (<1100 px) и компактная разметка позиции из макета.
 
 **Files:**
 - Create: `static/js/cart.js`
@@ -4116,7 +4240,7 @@ git commit -m "feat(orders): add quote page with validation, honeypot and per-IP
 - Test: `tests/test_static_assets.py`
 
 **Interfaces:**
-- Consumes: разметка из Task 8 (`[data-product]`, `[data-qty]`, `[data-add-to-quote]`, `[data-gallery-thumb]`, `[data-gallery-main]`, `[data-cart-count]`) и Task 13 (`[data-quote-list]`, `[data-quote-empty]`, `[data-quote-form] [name="items"]`, `[data-quote-submit]`, `[data-cart-clear]`).
+- Consumes: разметка из Task 8 (`[data-product]` на карточке и в `.product__actions`, `[data-qty]` только на странице товара, `[data-add-to-quote]`, `[data-gallery-thumb]`, `[data-gallery-main]`, `[data-cart-count]`, `[data-drawer-toggle][aria-controls]`, `[data-drawer-backdrop]`, `#catalog-menu`) и Task 13 (`[data-quote-list]`, `[data-quote-empty]`, `[data-quote-form] [name="items"]`, `[data-quote-submit]`, `[data-cart-clear]`); CSS-классы `sidebar--open`, `quote-item`, `quote-item__name`, `quote-item__row`, `qty`, `quote-item__remove`, `toast`.
 - Produces: `localStorage["quote_cart"]` — массив `{id: number, name: string, url: string, thumb: string, qty: number}`; значение скрытого поля `items` — `[{"id": number, "qty": number}]`.
 
 - [ ] **Step 1: Написать падающий тест**
@@ -4137,9 +4261,16 @@ def test_cart_script_uses_agreed_contract():
     for marker in [
         '"quote_cart"', "[data-add-to-quote]", "[data-quote-list]", '[name="items"]',
         "[data-cart-count]", "[data-cart-clear]", "[data-gallery-thumb]",
+        "[data-drawer-toggle]", "[data-drawer-backdrop]", "sidebar--open", "quote-item__row", "Escape",
     ]:
         assert marker in source
     assert "innerHTML" not in source
+
+
+def test_css_defines_classes_used_by_script():
+    css = open(finders.find("css/site.css"), encoding="utf-8").read()
+    for selector in [".sidebar--open", ".quote-item__row", ".toast", ".drawer-backdrop"]:
+        assert selector in css
 ```
 
 - [ ] **Step 2: Запустить — должен упасть**
@@ -4234,8 +4365,8 @@ git rm -q static/.gitkeep
     toast.textContent = message;
     if (withLink) {
       var link = document.createElement("a");
-      link.href = "/quote/";
-      link.textContent = "Перейти к запросу";
+      link.href = "#quote-panel";
+      link.textContent = "К запросу";
       toast.appendChild(link);
     }
     toast.hidden = false;
@@ -4247,26 +4378,14 @@ git rm -q static/.gitkeep
     var li = document.createElement("li");
     li.className = "quote-item";
 
-    var thumb = safePath(item.thumb);
-    if (thumb) {
-      var img = document.createElement("img");
-      img.src = thumb;
-      img.alt = "";
-      img.width = 64;
-      img.height = 64;
-      li.appendChild(img);
-    } else {
-      var placeholder = document.createElement("span");
-      placeholder.className = "product-card__placeholder";
-      placeholder.textContent = "Нет фото";
-      li.appendChild(placeholder);
-    }
-
     var name = document.createElement("a");
     name.className = "quote-item__name";
     name.href = safePath(item.url) || "#";
     name.textContent = item.name;
     li.appendChild(name);
+
+    var row = document.createElement("div");
+    row.className = "quote-item__row";
 
     var qtyWrap = document.createElement("div");
     qtyWrap.className = "qty";
@@ -4278,16 +4397,17 @@ git rm -q static/.gitkeep
     input.setAttribute("aria-label", "Количество: " + item.name);
     input.addEventListener("change", function () { setQty(item.id, input.value); });
     qtyWrap.appendChild(input);
-    li.appendChild(qtyWrap);
+    row.appendChild(qtyWrap);
 
     var remove = document.createElement("button");
     remove.type = "button";
     remove.className = "quote-item__remove";
-    remove.setAttribute("aria-label", "Удалить: " + item.name);
+    remove.setAttribute("aria-label", "Удалить из запроса: " + item.name);
     remove.textContent = "×";
     remove.addEventListener("click", function () { removeItem(item.id); });
-    li.appendChild(remove);
+    row.appendChild(remove);
 
+    li.appendChild(row);
     return li;
   }
 
@@ -4316,6 +4436,27 @@ git rm -q static/.gitkeep
     if (submit) submit.disabled = count === 0;
   }
 
+  function drawerParts() {
+    var toggle = document.querySelector("[data-drawer-toggle]");
+    var menu = toggle ? document.getElementById(toggle.getAttribute("aria-controls")) : null;
+    var backdrop = document.querySelector("[data-drawer-backdrop]");
+    return { toggle: toggle, menu: menu, backdrop: backdrop };
+  }
+
+  function setDrawer(open, returnFocus) {
+    var parts = drawerParts();
+    if (!parts.toggle || !parts.menu) return;
+    parts.menu.classList.toggle("sidebar--open", open);
+    parts.toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (parts.backdrop) parts.backdrop.hidden = !open;
+    if (open) {
+      var firstLink = parts.menu.querySelector("a");
+      if (firstLink) firstLink.focus();
+    } else if (returnFocus) {
+      parts.toggle.focus();
+    }
+  }
+
   document.addEventListener("click", function (event) {
     var addButton = event.target.closest("[data-add-to-quote]");
     if (addButton) {
@@ -4334,6 +4475,17 @@ git rm -q static/.gitkeep
       return;
     }
 
+    if (event.target.closest("[data-drawer-toggle]")) {
+      var parts = drawerParts();
+      setDrawer(!(parts.menu && parts.menu.classList.contains("sidebar--open")), false);
+      return;
+    }
+
+    if (event.target.closest("[data-drawer-backdrop]")) {
+      setDrawer(false, true);
+      return;
+    }
+
     var galleryThumb = event.target.closest("[data-gallery-thumb]");
     if (galleryThumb) {
       var main = document.querySelector("[data-gallery-main]");
@@ -4345,6 +4497,12 @@ git rm -q static/.gitkeep
         button.setAttribute("aria-current", button === galleryThumb ? "true" : "false");
       });
     }
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") return;
+    var parts = drawerParts();
+    if (parts.menu && parts.menu.classList.contains("sidebar--open")) setDrawer(false, true);
   });
 
   window.addEventListener("storage", function (event) {
@@ -4372,28 +4530,29 @@ git rm -q static/.gitkeep
 uv run pytest tests/test_static_assets.py
 node --check static/js/cart.js
 ```
-Expected: `3 passed`; `node --check` без вывода. Если Node не установлен — пропустить команду и выполнить ручную проверку ниже (синтаксическая ошибка сразу видна в консоли браузера).
+Expected: `4 passed`; `node --check` без вывода.
 
-- [ ] **Step 5: Ручной чек-лист корзины (спека §11)**
+- [ ] **Step 5: Ручной чек-лист (спека §11)**
 
 ```bash
 uv run python manage.py runserver
 ```
-В браузере (консоль DevTools открыта, ошибок быть не должно), с товаром, созданным в админке:
-1. На странице товара ввести количество 2 → «Добавить в запрос» → появляется уведомление, счётчик в шапке = 1.
-2. Повторно добавить тот же товар с количеством 3 → счётчик остаётся 1; на `/quote/` количество = 5.
-3. На `/quote/` изменить количество на 7 → обновить страницу → 7 сохранилось; ввести 0 → становится 1; ввести 5000 → становится 999.
-4. Удалить позицию → показывается «В запросе пока нет товаров», кнопка отправки неактивна, счётчик скрыт.
-5. Добавить товар, отправить форму с телефоном `12345` → ошибка у поля телефона, список товаров на месте.
-6. Отправить с корректным телефоном → страница «Спасибо» с номером заявки; счётчик в шапке исчез; в консоли `runserver` напечатано письмо.
-7. На странице товара с несколькими фото клик по миниатюре меняет главное фото.
-8. Повторить шаги 1–6 в DevTools на ширине 360 px: нет горизонтальной прокрутки, кнопки доступны.
+В браузере (консоль DevTools без ошибок), с товарами, созданными в админке:
+1. На главной нажать «В запрос» у карточки → уведомление; позиция появилась в правой панели; счётчик в мобильной панели = 1 (проверить на ширине < 1100 px).
+2. Повторно добавить тот же товар со страницы товара с количеством 3 → в панели одна позиция, количество 4.
+3. В панели изменить количество на 7 → перейти на другую страницу → 7 сохранилось; ввести 0 → 1; ввести 5000 → 999.
+4. Удалить позицию → «В запросе пока нет товаров», кнопка «Отправить запрос» неактивна, счётчик скрыт.
+5. Добавить товар, отправить форму из панели с телефоном `12345` → открывается `/quote/` с сообщением «Заявка не отправлена» и ошибкой у поля телефона в панели; список товаров на месте.
+6. Отправить с корректным телефоном → страница «Спасибо» с номером заявки; панель пуста; в консоли `runserver` напечатано письмо.
+7. На ширине 360 px: кнопка «Категории» открывает меню слева, фон затемняется; клик по фону и клавиша Escape закрывают меню; фокус возвращается на кнопку. Ссылка «Запрос» прокручивает к панели. Нет горизонтальной прокрутки.
+8. На ширине 1280 px: три колонки, левое меню и правая панель остаются на месте при прокрутке длинной главной.
+9. На странице товара с несколькими фото клик по миниатюре меняет главное фото.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add static tests/test_static_assets.py
-git commit -m "feat: add localStorage quote cart and product gallery script"
+git commit -m "feat: add quote panel cart, category drawer and product gallery script"
 ```
 
 ---
