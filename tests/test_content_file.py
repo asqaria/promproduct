@@ -50,7 +50,9 @@ def numbers(text: str) -> set[str]:
 
 
 def source_numbers(records: list[dict]) -> set[str]:
-    return set().union(*(numbers(r["name"] + " " + plain(r.get("description"))) for r in records)) if records else set()
+    if not records:
+        return set()
+    return set().union(*(numbers(r["name"] + " " + plain(r.get("description"))) for r in records))
 
 
 def html_errors(value: str, where: str) -> list[str]:
@@ -87,7 +89,8 @@ def product_errors(product: dict, legacy: dict[int, dict]) -> list[str]:
         errors.append(f"{slug}: legacy_ids не найдены в снимке")
 
     if not 20 <= len(product["short_description"]) <= 300:
-        errors.append(f"{slug}: short_description {len(product['short_description'])} символов (нужно 20–300)")
+        length = len(product["short_description"])
+        errors.append(f"{slug}: short_description {length} символов (нужно 20–300)")
     word_count = len(plain(product["description"]).split())
     min_words = 60 if product["needs_review"] else 150
     if not min_words <= word_count <= 300:
@@ -95,7 +98,8 @@ def product_errors(product: dict, legacy: dict[int, dict]) -> list[str]:
     if not 0 < len(product["meta_title"]) <= 60:
         errors.append(f"{slug}: meta_title {len(product['meta_title'])} символов (нужно 1–60)")
     if not 70 <= len(product["meta_description"]) <= 160:
-        errors.append(f"{slug}: meta_description {len(product['meta_description'])} символов (нужно 70–160)")
+        length = len(product["meta_description"])
+        errors.append(f"{slug}: meta_description {length} символов (нужно 70–160)")
     errors += html_errors(product["description"], f"{slug}.description")
 
     spec_texts = []
@@ -151,7 +155,10 @@ def test_categories_are_valid(content, legacy):
             if not 70 <= len(category["meta_description"]) <= 160:
                 errors.append(f"{slug}: meta_description {len(category['meta_description'])} символов")
         errors += html_errors(category["seo_text"], f"{slug}.seo_text")
-        written = " ".join([category["name"], plain(category["seo_text"]), category["meta_title"], category["meta_description"]])
+        written = " ".join(
+            [category["name"], plain(category["seo_text"]),
+             category["meta_title"], category["meta_description"]]
+        )
         errors += text_errors(written, slug)
         legacy_ids = [i for p in content["products"] if p["category"] == slug for i in p["legacy_ids"]]
         legacy_ids += [i for i, target in REMOVED_LEGACY.items() if target == slug]
