@@ -14,13 +14,16 @@ LOGO rfv-rfg/1.webp
 LOGO shdg-31n-35n/1.webp
 LOGO shdg-31n-35n/2.webp
 LOGO shdg-31n-35n/3.webp
+LOGO shdg-31n-35n/4.webp
 LOGO shgg/1.webp
+LOGO shrg-150n-200n/1.webp
 LOGO shrg-150n-200n/2.webp
 LOGO spring-return-cylinders/1.webp
 LOGO sshg/2.webp
 LOGO tg-3ep/1.webp
 LOGO tg-3ep/2.webp
 LOGO tg-3ep/3.webp
+LOGO tg-3ep/4.webp
 LOGO tpg-1-25b/1.webp
 LOGO tpg-1-25b/3.webp
 LOGO tpg-1-25b/5.webp
