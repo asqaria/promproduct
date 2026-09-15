@@ -8,8 +8,16 @@
 1. Отозвать старый пароль приложения Gmail (Google-аккаунт → Безопасность → Пароли приложений) и создать новый.
 2. В DNS домена добавить A-запись `new.prom-products.kz` → `93.115.14.68`.
 3. Проверить Docker: `docker compose version`.
-4. Узнать, как запущен Caddy: `systemctl status caddy` (служба) или `docker ps | grep -i caddy` (контейнер).
-   Если Caddy в контейнере — каталог `/opt/promproduct/media` нужно примонтировать в него по тому же пути.
+4. Узнать, как запущен Caddy — от этого зависят команды в §3 и §5:
+   - **Служба на хосте:** `systemctl status caddy` — если найдена, конфиг лежит в `/etc/caddy/Caddyfile`, применяется через `sudo systemctl reload caddy`.
+   - **Контейнер:** `docker ps | grep -i caddy` (обычно называется `caddy`) — если так:
+     - Путь к Caddyfile на хосте: `docker inspect caddy --format '{{range .Mounts}}{{.Source}} -> {{.Destination}}{{"\n"}}{{end}}'`. Редактировать файл по пути `{{.Source}}` на хосте — в контейнере он смонтирован в `{{.Destination}}` (обычно `/etc/caddy/Caddyfile`).
+     - Валидация и применение — командами внутри контейнера: `docker exec caddy caddy validate --config /etc/caddy/Caddyfile` и `docker exec caddy caddy reload --config /etc/caddy/Caddyfile` (systemd в контейнере нет).
+     - Каталог `/opt/promproduct/media` нужно примонтировать в контейнер Caddy по тому же пути (добавить том в его конфигурацию — `docker-compose.yml` или `docker run` — и пересоздать контейнер Caddy).
+     - Контейнеру Caddy нужен доступ к `web`: изнутри контейнера `127.0.0.1:8001` указывает на сам контейнер, а не на хост, где слушает `web`. Проверить, что уже настроено: `docker inspect caddy --format '{{.HostConfig.ExtraHosts}}'`.
+       - Если там уже есть `host.docker.internal:host-gateway` — в Caddyfile проксировать на `host.docker.internal:8001`.
+       - Если пусто — либо пересоздать контейнер Caddy с `--add-host host.docker.internal:host-gateway` и проксировать на тот же адрес, либо (без пересоздания Caddy) узнать адрес моста Docker: `docker network inspect bridge --format '{{(index .IPAM.Config 0).Gateway}}'` и проксировать на `<адрес-моста>:8001`.
+       - Если у Caddy есть свой `docker-compose.yml`, который можно подключить к сети проекта (`docker network connect <сеть_проекта> caddy`; имя сети — `docker compose ps --format '{{.Networks}}'` в `/opt/promproduct`), проще всего проксировать прямо на `web:8000` по имени сервиса — тогда `host.docker.internal`/адрес моста не нужны.
 
 ## 1. Код и настройки
 
@@ -65,11 +73,25 @@ docker compose exec web python manage.py import_catalog
 
 ## 3. Caddy для стенда
 
-1. Сделать копию: `sudo cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.bak-$(date +%F)`.
-2. Получить хеш пароля стенда: `caddy hash-password --plaintext '<пароль для просмотра>'`.
-3. Добавить в `/etc/caddy/Caddyfile` блоки `(promproduct_app)` и `new.prom-products.kz` из `deploy/Caddyfile.example` (ЭТАП 1), подставив хеш. В Caddy старше 2.8 директива называется `basicauth`.
-4. `caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy`
-5. Открыть `https://new.prom-products.kz` — запрашивается логин `preview` и пароль, сайт открывается.
+Хеш пароля стенда — общий для обоих вариантов ниже:
+```sh
+caddy hash-password --plaintext '<пароль для просмотра>'
+```
+Если Caddy в контейнере и на хосте нет бинарника `caddy` — выполнить ту же команду внутри контейнера: `docker exec caddy caddy hash-password --plaintext '<пароль для просмотра>'`.
+
+Блоки `(promproduct_app)` и `new.prom-products.kz` берутся из `deploy/Caddyfile.example` (ЭТАП 1), с подставленным хешем; в Caddy старше 2.8 директива называется `basicauth`. Адрес прокси `127.0.0.1:8001` в примере подходит только для Caddy-службы на хосте — для Caddy в контейнере вместо него подставить адрес из §0.4 (`host.docker.internal:8001`, адрес моста или `web:8000`).
+
+**Caddy — служба на хосте:**
+1. Копия: `sudo cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.bak-$(date +%F)`.
+2. Добавить блоки в `/etc/caddy/Caddyfile`.
+3. `caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy`
+
+**Caddy — контейнер:**
+1. Копия: `sudo cp <путь к Caddyfile на хосте из §0.4> <тот же путь>.bak-$(date +%F)`.
+2. Добавить блоки в этот файл (адрес прокси — см. выше).
+3. `docker exec caddy caddy validate --config /etc/caddy/Caddyfile && docker exec caddy caddy reload --config /etc/caddy/Caddyfile`
+
+Открыть `https://new.prom-products.kz` — запрашивается логин `preview` и пароль, сайт открывается.
 
 ## 4. Проверка стенда (до переключения)
 
@@ -94,24 +116,33 @@ docker compose exec web python manage.py import_catalog
 
 ## 5. Переключение домена
 
-```sh
-cd /opt/promproduct
-# 1. Дамп старых заявок (контейнер старой БД называется postgresql-db)
-docker exec postgresql-db pg_dump -U appuser -d appdb --data-only --table=public.request > legacy_requests.sql
-docker compose cp legacy_requests.sql web:/tmp/legacy_requests.sql
-docker compose exec web python manage.py import_legacy_requests /tmp/legacy_requests.sql --date $(date +%F)
+Порядок ниже важен: дамп заявок со старого сайта снимается **после** переключения Caddy на новый сайт, а не до. Пока Caddy проксирует `prom-products.kz` на старый стек, старый сайт продолжает принимать заявки — если снять дамп раньше, заявка, отправленная в промежутке между дампом и остановкой старого сайта, не попадёт ни в дамп, ни в новую БД и будет потеряна безвозвратно. Дамп становится окончательным только тогда, когда старый сайт уже не обслуживает трафик.
 
-# 2. Основной домен в настройках
-sed -i 's#^SITE_URL=.*#SITE_URL=https://prom-products.kz#' .env
-docker compose up -d
-```
+1. Основной домен в настройках и пересоздать `web`:
+   ```sh
+   cd /opt/promproduct
+   sed -i 's#^SITE_URL=.*#SITE_URL=https://prom-products.kz#' .env
+   docker compose up -d
+   ```
+2. Переключить Caddy на новый сайт: в конфиге (`/etc/caddy/Caddyfile` для службы на хосте или в файле из §0.4 для контейнера) удалить старый блок `prom-products.kz` (тот, что проксирует на старые контейнеры, включая старый admin API под `/api/` — после переключения он не должен обслуживаться) и блок стенда, вставить три блока ЭТАПА 2 из `deploy/Caddyfile.example` (адрес прокси в `(promproduct_app)` — как в §3, свой для каждой топологии Caddy).
+   - Служба на хосте: `caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy`
+   - Контейнер: `docker exec caddy caddy validate --config /etc/caddy/Caddyfile && docker exec caddy caddy reload --config /etc/caddy/Caddyfile`
+3. Проверить, что новый сайт обслуживает трафик, а старый выключен из маршрутизации (только после этого старый сайт можно считать не принимающим заявки):
+   ```sh
+   curl -sI https://prom-products.kz/ | head -1                # 200
+   curl -sI https://www.prom-products.kz/ | grep -i location   # https://prom-products.kz/
+   curl -s https://prom-products.kz/robots.txt                 # содержит Sitemap: https://prom-products.kz/sitemap.xml
+   curl -sI https://prom-products.kz/api/ | head -1             # старый admin API больше не отвечает (404 или соединение закрыто)
+   ```
+4. Только теперь снять дамп старых заявок — старый сайт больше не обслуживается, значит дамп финальный и ничего не потеряется (контейнер старой БД называется `postgresql-db`):
+   ```sh
+   docker exec postgresql-db pg_dump -U appuser -d appdb --data-only --table=public.request > legacy_requests.sql
+   docker compose cp legacy_requests.sql web:/tmp/legacy_requests.sql
+   docker compose exec web python manage.py import_legacy_requests /tmp/legacy_requests.sql --date $(date +%F)
+   ```
+5. Остановить старые контейнеры (не удалять): `docker stop promproduct-app frontend postgresql-db`.
 
-3. В `/etc/caddy/Caddyfile` удалить старый блок `prom-products.kz` (тот, что проксирует на старые контейнеры, включая старый admin API под `/api/` — после переключения он не должен обслуживаться) и блок стенда, вставить три блока ЭТАПА 2 из `deploy/Caddyfile.example`.
-4. `caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy`
-5. Проверить: `curl -sI https://prom-products.kz/ | head -1` → `200`; `curl -sI https://www.prom-products.kz/ | grep -i location` → `https://prom-products.kz/`; `curl -s https://prom-products.kz/robots.txt` содержит `Sitemap: https://prom-products.kz/sitemap.xml`; `curl -sI https://prom-products.kz/api/ | head -1` → старый admin API больше не отвечает (404 или соединение закрыто).
-6. Остановить старые контейнеры (не удалять): `docker stop promproduct-app frontend postgresql-db`.
-
-**Откат (в течение 7 дней):** вернуть `Caddyfile` из копии `Caddyfile.bak-…`, `docker start postgresql-db promproduct-app frontend`, `sudo systemctl reload caddy`.
+**Откат (в течение 7 дней):** вернуть Caddyfile из копии `Caddyfile.bak-…` (`sudo cp` обратно в `/etc/caddy/Caddyfile` или в смонтированный файл для контейнера), `docker start postgresql-db promproduct-app frontend`, применить конфиг (`sudo systemctl reload caddy` для службы или `docker exec caddy caddy reload --config /etc/caddy/Caddyfile` для контейнера).
 
 Через 7 дней без проблем: `docker rm promproduct-app frontend postgresql-db` (volume старой БД оставить ещё на месяц).
 

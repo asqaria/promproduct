@@ -1,6 +1,7 @@
 .git
 .venv
 .env
+.superpowers
 media
 staticfiles
 .pytest_cache
