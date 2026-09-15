@@ -13,3 +13,8 @@ def clear_cache():
     cache.clear()
     yield
     cache.clear()
+
+
+@pytest.fixture
+def superuser(django_user_model):
+    return django_user_model.objects.create_superuser("root", "root@example.com", "very-strong-pass-123")
