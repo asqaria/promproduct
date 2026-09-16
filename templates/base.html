@@ -22,7 +22,7 @@
 
   <header class="topbar">
     <div class="container container--wide topbar__inner">
-      <a class="logo" href="/">{{ site.company_name }}</a>
+      <a class="logo" href="/">{% if site.logo %}<img class="logo__img" src="{{ site.logo.url }}" alt="{{ site.company_name }}">{% else %}{{ site.company_name }}{% endif %}</a>
       <div class="topbar__contact">
         {% with phone=site.phone_list.0 wa=site.whatsapp_list.0 %}
           {% if phone %}

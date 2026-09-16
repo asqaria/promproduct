@@ -1,0 +1,8 @@
+{% if site.price_list %}
+<section class="pricelist-panel panel">
+  <h2>Прайс-лист</h2>
+  <p class="note">Актуальный список товаров и цен в формате Excel.</p>
+  <a class="btn btn--primary" href="{{ site.price_list.url }}" download>Скачать прайс-лист</a>
+  {% if site.price_list_updated %}<p class="note">Обновлён {{ site.price_list_updated|date:"d.m.Y" }}</p>{% endif %}
+</section>
+{% endif %}

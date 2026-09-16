@@ -2,9 +2,11 @@ import re
 import uuid
 from decimal import Decimal
 
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.utils import timezone
 
 from catalog.images import to_webp
 from catalog.paths import category_path, product_path
@@ -194,6 +196,14 @@ class SiteSettings(models.Model):
     )
     bin = models.CharField("БИН", max_length=12, blank=True)
     map_url = models.URLField("Ссылка на карту (2GIS)", blank=True)
+    logo = models.ImageField("Логотип", upload_to="site/", blank=True)
+    price_list = models.FileField(
+        "Прайс-лист (Excel)",
+        upload_to="site/",
+        blank=True,
+        validators=[FileExtensionValidator(["xlsx", "xls"])],
+    )
+    price_list_updated = models.DateField("Прайс обновлён", null=True, blank=True, editable=False)
 
     class Meta:
         verbose_name = "настройки сайта"
@@ -204,6 +214,14 @@ class SiteSettings(models.Model):
 
     def save(self, *args, **kwargs) -> None:
         self.pk = 1
+        old_price_list = None
+        if self.pk:
+            old_price_list = (
+                type(self).objects.filter(pk=self.pk).values_list("price_list", flat=True).first()
+            )
+        new_price_list = self.price_list.name if self.price_list else None
+        if new_price_list != old_price_list:
+            self.price_list_updated = timezone.localdate() if new_price_list else None
         super().save(*args, **kwargs)
 
     @classmethod

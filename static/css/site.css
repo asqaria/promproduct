@@ -39,6 +39,10 @@ h3 { font-size: 1.15rem; }
 
 .logo { margin-right: auto; font-weight: 800; font-size: 1.1rem; color: var(--color-text); text-decoration: none; }
 .logo span { color: var(--color-accent); }
+.logo__img { height: 48px; max-width: 260px; object-fit: contain; display: block; }
+@media (max-width: 640px) {
+  .logo__img { height: 40px; }
+}
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border: 1px solid transparent; border-radius: var(--radius); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; transition: background-color .15s; }
 .btn--primary { background: var(--color-accent); color: #fff; }
@@ -214,6 +218,7 @@ h3 { font-size: 1.15rem; }
 
 .contacts-panel { display: flex; flex-direction: column; gap: 12px; }
 .contacts-panel .btn--whatsapp { width: 100%; }
+.pricelist-panel .btn { width: 100%; }
 
 .notice { padding: 12px 16px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); }
 .notice--error { background: #fef2f2; border-color: #fecaca; color: var(--color-error); }
