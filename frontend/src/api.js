@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-const API_BASE = import.meta.env.VITE_API_BASE ?? "https://prom-products.kz/api";
-=======
 const API_BASE =
   import.meta.env.VITE_API_BASE ?? "https://prom-products.kz/api";
->>>>>>> 8fe8eec09b11638d3586ada2d6ea41150914e334
 
 export async function fetchProducts() {
   const res = await fetch(`${API_BASE}/products`);
