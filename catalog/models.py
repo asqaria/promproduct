@@ -214,11 +214,13 @@ class SiteSettings(models.Model):
 
     def save(self, *args, **kwargs) -> None:
         self.pk = 1
-        old_price_list = None
-        if self.pk:
-            old_price_list = (
-                type(self).objects.filter(pk=self.pk).values_list("price_list", flat=True).first()
-            )
+        # Detect a file change by comparing the value still stored in the DB against
+        # the newly assigned (not-yet-saved-to-storage) name. An unset field reads as
+        # '' from the DB but as None once assigned in memory, so both sides are
+        # normalized to None before comparing.
+        old_price_list = (
+            type(self).objects.filter(pk=self.pk).values_list("price_list", flat=True).first() or None
+        )
         new_price_list = self.price_list.name if self.price_list else None
         if new_price_list != old_price_list:
             self.price_list_updated = timezone.localdate() if new_price_list else None

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.db.models import Count
+from django.db.models import Count, URLField
 from django.utils.html import format_html
 
 from catalog.forms import CategoryAdminForm, ProductAdminForm
@@ -85,6 +85,12 @@ class RedirectAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
+    # Opt into Django 6.0 behaviour now for map_url: treat a scheme-less URL as
+    # https:// instead of http://. Scoped to this one URLField (the admin is the
+    # only place it's ever edited) so it doesn't rely on the deprecated
+    # FORMS_URLFIELD_ASSUME_HTTPS transitional setting.
+    formfield_overrides = {URLField: {"assume_scheme": "https"}}
+
     def has_add_permission(self, request) -> bool:
         return not SiteSettings.objects.exists()
 

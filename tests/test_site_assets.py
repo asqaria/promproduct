@@ -75,7 +75,7 @@ def test_price_list_updated_changes_when_new_file_uploaded():
     settings_obj.save()
     settings_obj.refresh_from_db()
     assert settings_obj.price_list_updated == timezone.localdate()
-    assert settings_obj.price_list.name.endswith("second.xlsx") or "second" in settings_obj.price_list.name
+    assert settings_obj.price_list.name == "site/second.xlsx"
 
 
 def test_price_list_updated_cleared_when_file_removed():
