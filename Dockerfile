@@ -19,8 +19,8 @@ RUN DEBUG=False SECRET_KEY=build-only-not-secret DATABASE_URL=sqlite:////tmp/bui
     python manage.py collectstatic --noinput
 
 RUN useradd --system --uid 1000 --home-dir /app app \
-    && mkdir -p /app/media \
-    && chown app /app/media
+    && mkdir -p /app/media /app/.gunicorn \
+    && chown app /app/media /app/.gunicorn
 USER app
 
 EXPOSE 8000

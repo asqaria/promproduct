@@ -209,7 +209,7 @@ CACHE_LOCATION=promproduct
 
 # --- Email ---
 # локально письма печатаются в консоль. На сервере для Gmail (пароль приложения, пробелы убрать, @ → %40):
-# EMAIL_URL=submission://user%40gmail.com:apppassword@smtp.gmail.com:587
+# EMAIL_URL=smtp+tls://user%40gmail.com:apppassword@smtp.gmail.com:587
 EMAIL_URL=consolemail://
 DEFAULT_FROM_EMAIL=webmaster@localhost
 ADMIN_EMAIL=admin@example.com
@@ -6108,7 +6108,7 @@ POSTGRES_PASSWORD=<вторая строка>
 DATABASE_URL=postgres://promproduct:<вторая строка>@db:5432/promproduct
 CACHE_BACKEND=django.core.cache.backends.db.DatabaseCache
 CACHE_LOCATION=django_cache
-EMAIL_URL=submission://<логин>%40gmail.com:<новый пароль приложения без пробелов>@smtp.gmail.com:587
+EMAIL_URL=smtp+tls://<логин>%40gmail.com:<новый пароль приложения без пробелов>@smtp.gmail.com:587
 DEFAULT_FROM_EMAIL=<логин>@gmail.com
 ADMIN_EMAIL=<почта для заявок>
 MEDIA_ROOT=/app/media
