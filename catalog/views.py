@@ -49,7 +49,6 @@ def home(request):
             "оборудование в Астане. Запрос коммерческого предложения онлайн."
         ),
         "category_blocks": category_blocks(),
-        "local_business": seo.local_business_ld(site),
     }
     return render(request, "catalog/home.html", context)
 
@@ -58,6 +57,7 @@ def home(request):
 def catalog_index(request):
     site = SiteSettings.load()
     breadcrumbs = [HOME_CRUMB, CATALOG_CRUMB]
+    categories = list(categories_with_products())
     context = {
         "nav_active": "",
         "page_title": f"Каталог инструмента — {site.company_name}",
@@ -65,9 +65,13 @@ def catalog_index(request):
             "Каталог гидравлического и трубного инструмента: трубогибы, прессы, домкраты, маслостанции "
             "и другое оборудование. Цены и сроки — по запросу."
         ),
-        "categories": categories_with_products(),
+        "categories": categories,
         "breadcrumbs": breadcrumbs,
         "breadcrumbs_ld": seo.breadcrumb_ld(breadcrumbs),
+        "item_list_ld": seo.item_list_ld(
+            "Каталог инструмента",
+            [(category.name, category.get_absolute_url()) for category in categories],
+        ),
     }
     return render(request, "catalog/index.html", context)
 
@@ -77,14 +81,18 @@ def category_detail(request, slug: str):
     category = get_object_or_404(Category, slug=slug, is_active=True)
     site = SiteSettings.load()
     breadcrumbs = [HOME_CRUMB, CATALOG_CRUMB, (category.name, category.get_absolute_url())]
+    products = list(public_products().filter(category=category))
     context = {
         "nav_active": category.slug,
         "category": category,
-        "products": public_products().filter(category=category),
+        "products": products,
         "page_title": seo.category_title(category, site.company_name),
         "page_description": seo.category_description(category),
         "breadcrumbs": breadcrumbs,
         "breadcrumbs_ld": seo.breadcrumb_ld(breadcrumbs),
+        "item_list_ld": seo.item_list_ld(
+            category.name, [(product.name, product.get_absolute_url()) for product in products]
+        ),
     }
     return render(request, "catalog/category.html", context)
 
@@ -138,7 +146,6 @@ def contacts(request):
         "page_description": f"Адрес, телефоны и WhatsApp компании {site.company_name} в Астане.",
         "breadcrumbs": breadcrumbs,
         "breadcrumbs_ld": seo.breadcrumb_ld(breadcrumbs),
-        "local_business": seo.local_business_ld(site),
     }
     return render(request, "catalog/contacts.html", context)
 
@@ -147,7 +154,7 @@ def contacts(request):
 def robots_txt(request):
     lines = [
         "User-agent: *",
-        "Disallow: /quote/",
+        "Allow: /",
         "",
         f"Sitemap: {settings.SITE_URL}/sitemap.xml",
     ]

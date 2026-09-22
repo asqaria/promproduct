@@ -52,6 +52,20 @@ def breadcrumb_ld(items: list[tuple[str, str]]) -> dict:
     }
 
 
+def item_list_ld(name: str, items: list[tuple[str, str]]) -> dict:
+    """ItemList для страниц-списков: пары (название, путь) в порядке вывода."""
+    return {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": name,
+        "numberOfItems": len(items),
+        "itemListElement": [
+            {"@type": "ListItem", "position": index, "name": item_name, "url": absolute_url(path)}
+            for index, (item_name, path) in enumerate(items, start=1)
+        ],
+    }
+
+
 def product_ld(product) -> dict:
     url = absolute_url(product.get_absolute_url())
     data = {
@@ -60,6 +74,8 @@ def product_ld(product) -> dict:
         "name": product.name,
         "description": product_description(product),
         "url": url,
+        "category": product.category.name,
+        "itemCondition": "https://schema.org/NewCondition",
     }
     images = [absolute_url(image.image.url) for image in product.images.all() if image.image]
     if images:

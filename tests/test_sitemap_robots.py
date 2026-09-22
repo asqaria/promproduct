@@ -33,6 +33,7 @@ def test_robots_txt(client):
     assert response.status_code == 200
     assert response["Content-Type"].startswith("text/plain")
     assert "User-agent: *" in body
-    assert "Disallow: /quote/" in body
+    assert "Allow: /" in body
+    assert "Disallow" not in body
     assert "Sitemap: http://localhost:8000/sitemap.xml" in body
     assert settings.ADMIN_URL not in body

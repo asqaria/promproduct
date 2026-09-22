@@ -6,13 +6,24 @@ from catalog.models import Category, Product
 
 class StaticSitemap(Sitemap):
     changefreq = "weekly"
-    priority = 0.6
+    PRIORITIES = {"/": 1.0, "/catalog/": 0.9, "/contacts/": 0.5}
 
     def items(self):
-        return ["/", "/catalog/", "/contacts/"]
+        return list(self.PRIORITIES)
 
     def location(self, item: str) -> str:
         return item
+
+    def priority(self, item: str) -> float:
+        return self.PRIORITIES[item]
+
+    def lastmod(self, item: str):
+        """Дата последнего изменения каталога — сигнал для переобхода витрин."""
+        if item == "/contacts/":
+            return None
+        return Product.objects.filter(is_active=True, category__is_active=True).aggregate(
+            latest=Max("updated_at")
+        )["latest"]
 
 
 class CategorySitemap(Sitemap):

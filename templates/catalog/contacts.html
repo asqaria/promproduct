@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load seo_tags %}
-{% block structured_data %}{% ld_json local_business %}{% ld_json breadcrumbs_ld %}{% endblock %}
+{% block structured_data %}{% ld_json breadcrumbs_ld %}{% endblock %}
 {% block content %}
   {% include "includes/breadcrumbs.html" %}
   <div class="page-head"><h1>Контакты</h1></div>
@@ -13,5 +13,23 @@
       {% if site.working_hours %}<li><strong>Часы работы</strong>{{ site.working_hours }}</li>{% endif %}
       {% if site.bin %}<li><strong>БИН</strong>{{ site.bin }}</li>{% endif %}
     </ul>
+  </section>
+  <section class="panel prose">
+    <h2>Как мы работаем</h2>
+    <p>
+      {{ site.company_name }} — поставщик гидравлического и трубного инструмента в Астане. Мы работаем
+      с юридическими лицами и частными покупателями и отправляем оборудование по всему Казахстану.
+      Реквизиты для договора и счёта высылаем по запросу.
+    </p>
+    <p>
+      Как сделать заказ: выберите модели в каталоге, добавьте их в запрос и оставьте имя и телефон.
+      Менеджер свяжется с вами, уточнит задачу и пришлёт коммерческое предложение с ценами, наличием
+      и сроками поставки. Если модель ещё не выбрана, опишите задачу в WhatsApp — поможем подобрать
+      оборудование под диаметр труб, требуемое усилие и условия на объекте.
+    </p>
+    <p>
+      Перед визитом в офис позвоните или напишите в WhatsApp, чтобы уточнить наличие нужной позиции
+      и удобное время.
+    </p>
   </section>
 {% endblock %}

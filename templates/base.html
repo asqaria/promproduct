@@ -1,4 +1,4 @@
-{% load static %}<!doctype html>
+{% load seo_tags static %}<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
@@ -6,15 +6,19 @@
   <title>{% block title %}{{ page_title|default:site.company_name }}{% endblock %}</title>
   <meta name="description" content="{{ page_description|default:'' }}">
   <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
-  <meta name="google-site-verification" content="iWvlBU0mWV3JhKvhVucYh0MaRMYU7Yk5sYp-d6hZsr8">
+  {% if site.google_verification %}<meta name="google-site-verification" content="{{ site.google_verification }}">{% endif %}
+  {% if site.yandex_verification %}<meta name="yandex-verification" content="{{ site.yandex_verification }}">{% endif %}
   <link rel="canonical" href="{% block canonical %}{{ site_url }}{{ request.path }}{% endblock %}">
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
   <meta property="og:site_name" content="{{ site.company_name }}">
   <meta property="og:title" content="{{ page_title|default:site.company_name }}">
   <meta property="og:description" content="{{ page_description|default:'' }}">
   <meta property="og:url" content="{{ site_url }}{{ request.path }}">
-  {% block og_image %}{% endblock %}
+  {% block og_image %}{% if site.logo %}<meta property="og:image" content="{{ site_url }}{{ site.logo.url }}">{% endif %}{% endblock %}
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  {% if local_business %}{% ld_json local_business %}{% endif %}
   {% block structured_data %}{% endblock %}
   <script src="{% static 'js/cart.js' %}" defer></script>
 </head>
@@ -59,7 +63,22 @@
         <h2>{{ site.company_name }}</h2>
         {% if site.address %}<p>{{ site.address }}</p>{% endif %}
         {% if site.bin %}<p>БИН {{ site.bin }}</p>{% endif %}
+        {% with phone=site.phone_list.0 %}{% if phone %}<p><a href="tel:{{ phone|cut:' ' }}">{{ phone }}</a></p>{% endif %}{% endwith %}
       </div>
+      <nav class="footer-nav" aria-label="Разделы сайта">
+        <h2>Разделы</h2>
+        <ul>
+          <li><a href="/">Главная</a></li>
+          <li><a href="/catalog/">Каталог</a></li>
+          <li><a href="/contacts/">Контакты</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-nav" aria-label="Категории каталога">
+        <h2>Категории</h2>
+        <ul>
+          {% for category in nav_categories %}<li><a href="{{ category.get_absolute_url }}">{{ category.name }}</a></li>{% endfor %}
+        </ul>
+      </nav>
       <div>
         <p>© {% now "Y" %} {{ site.company_name }}</p>
       </div>

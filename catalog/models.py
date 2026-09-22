@@ -180,6 +180,9 @@ def delete_product_image_files(sender, instance: ProductImage, **kwargs) -> None
 
 DEFAULT_ADDRESS = "Казахстан, г. Астана, ул. Керей Жанибек хандар, 50/3"
 DEFAULT_WHATSAPP = "+7 777 305 4243\n+7 777 377 3763"
+# Токен уже подтверждён в Search Console — переносится в БД как значение по умолчанию,
+# чтобы подтверждение не слетело при миграции существующей строки настроек.
+DEFAULT_GOOGLE_VERIFICATION = "iWvlBU0mWV3JhKvhVucYh0MaRMYU7Yk5sYp-d6hZsr8"
 
 
 class SiteSettings(models.Model):
@@ -196,6 +199,19 @@ class SiteSettings(models.Model):
     )
     bin = models.CharField("БИН", max_length=12, blank=True)
     map_url = models.URLField("Ссылка на карту (2GIS)", blank=True)
+    google_verification = models.CharField(
+        "Код подтверждения Google",
+        max_length=200,
+        blank=True,
+        default=DEFAULT_GOOGLE_VERIFICATION,
+        help_text="Значение content из мета-тега google-site-verification в Search Console.",
+    )
+    yandex_verification = models.CharField(
+        "Код подтверждения Яндекса",
+        max_length=200,
+        blank=True,
+        help_text="Значение content из мета-тега yandex-verification в Яндекс.Вебмастере.",
+    )
     logo = models.ImageField("Логотип", upload_to="site/", blank=True)
     price_list = models.FileField(
         "Прайс-лист (Excel)",

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load seo_tags %}
-{% block structured_data %}{% ld_json breadcrumbs_ld %}{% endblock %}
+{% block structured_data %}{% ld_json breadcrumbs_ld %}{% ld_json item_list_ld %}{% endblock %}
 {% block content %}
   {% include "includes/breadcrumbs.html" %}
   <div class="page-head"><h1>{{ category.name }}</h1></div>
